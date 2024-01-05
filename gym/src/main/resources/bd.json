@@ -1,0 +1,30 @@
+{
+    "database": {
+        "User": {},
+        "Trainee": {},
+        "TrainingType": {
+            "4d64eb7c-cd62-4209-a574-e531101953fa" : {
+                "id": "4d64eb7c-cd62-4209-a574-e531101953fa",
+                "name": "Fitness"
+            },
+            "5cade45d-8067-443b-94e1-09ba789da945" : {
+                "id": "5cade45d-8067-443b-94e1-09ba789da945",
+                "name": "Yoga"
+            },
+            "c355477f-ea74-4222-a7b8-03d28a0e533f" : {
+                "id": "c355477f-ea74-4222-a7b8-03d28a0e533f",
+                "name": "Zumba"
+            },
+            "2f561017-7040-43a4-8d92-4cf78ff93bcd" : {
+                "id": "2f561017-7040-43a4-8d92-4cf78ff93bcd",
+                "name": "Stretching"
+            },
+            "b95129ef-d73c-48d1-a268-97df8f8163dc" : {
+                "id": "b95129ef-d73c-48d1-a268-97df8f8163dc",
+                "name": "Resistance"
+            }
+        },
+        "Trainer": {},
+        "Training": {}
+    }
+}
