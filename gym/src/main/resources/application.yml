@@ -1,3 +1,17 @@
 data:
   file:
     path: bd.json
+
+spring:
+  datasource:
+    url: jdbc:postgresql://drona.db.elephantsql.com/flkrewxq
+    username: flkrewxq
+    password: 1PSFouUubB85Xf6beNhqbCNabF0k3OKw
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    generate-ddl: true

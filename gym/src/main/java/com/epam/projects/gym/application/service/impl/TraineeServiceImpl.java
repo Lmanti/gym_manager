@@ -1,120 +1,116 @@
 package com.epam.projects.gym.application.service.impl;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.epam.projects.gym.application.dto.basics.TraineeBasicDto;
-import com.epam.projects.gym.application.dto.fulls.TraineeFullDto;
-import com.epam.projects.gym.application.dto.requests.TraineeRegister;
-import com.epam.projects.gym.application.dto.requests.TraineeUpdate;
-import com.epam.projects.gym.application.dto.responses.TraineeProfile;
-import com.epam.projects.gym.application.dto.responses.TraineeUpdated;
-import com.epam.projects.gym.application.dto.responses.UserCreated;
+import com.epam.projects.gym.application.dto.basic.TraineeBasicDto;
+import com.epam.projects.gym.application.dto.request.TraineeRegister;
+import com.epam.projects.gym.application.dto.request.TraineeUpdate;
+import com.epam.projects.gym.application.dto.response.TraineeProfile;
+import com.epam.projects.gym.application.dto.response.UserCreated;
+import com.epam.projects.gym.application.mapper.TraineeMapper;
 import com.epam.projects.gym.application.service.TraineeService;
-import com.epam.projects.gym.infrastructure.adapter.TraineeAdapter;
-import com.epam.projects.gym.infrastructure.adapter.TrainerAdapter;
-import com.epam.projects.gym.infrastructure.mappers.TraineeMapper;
-import com.epam.projects.gym.infrastructure.mappers.TrainerMapper;
+import com.epam.projects.gym.domain.entity.Trainee;
+import com.epam.projects.gym.domain.entity.User;
+import com.epam.projects.gym.domain.repository.TraineeRepository;
+import com.epam.projects.gym.domain.repository.UserRepository;
+import com.epam.projects.gym.domain.utils.Randomizer;
 
 @Service
 public class TraineeServiceImpl implements TraineeService {
 	
-	private TraineeAdapter traineeService;
+	private UserRepository userRepository;
 	
-	private TrainerAdapter trainerService;
+	private TraineeRepository traineeRepository;
 	
-	@Autowired
-	private TraineeMapper traineeMapper;
-	
-	@Autowired
-	private TrainerMapper trainerMapper;
-	
-	@Autowired
-	public TraineeServiceImpl(TraineeAdapter traineeService, TrainerAdapter trainerService) {
-		this.traineeService = traineeService;
-		this.trainerService = trainerService;
-	}
-	
-	@Override
-	public TraineeProfile getTraineeByUsername(String username) {
-		TraineeBasicDto traineeBasic = traineeService.getTraineeByUsername(username);
-		if (traineeBasic != null) {
-			TraineeFullDto dto = getTraineeById(traineeBasic.getTraineeId());
-			return traineeMapper.mapProfileResponse(dto);
-		} else {
-			return null;
-		}
+	public TraineeServiceImpl(UserRepository userRepository, TraineeRepository traineeRepository) {
+		this.userRepository = userRepository;
+		this.traineeRepository = traineeRepository;
 	}
 
 	@Override
 	public List<TraineeProfile> getAllTrainees() {
-		List<TraineeBasicDto> basics = traineeService.getAllTrainees();
-		if (basics != null && !basics.isEmpty()) {
-			List<TraineeProfile> fulls = basics.stream()
-					.map(x -> traineeMapper.mapProfileResponse(getTraineeById(x.getTraineeId())))
-					.collect(Collectors.toList());
-			return fulls;
-		} else {
-			return Collections.emptyList();			
-		}
+		List<Trainee> trainees = traineeRepository.getAllTrainees();
+		return trainees.stream().map(TraineeMapper::toProfile).collect(Collectors.toList());
+	}
+
+	@Override
+	public TraineeBasicDto getTraineeById(UUID id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public TraineeProfile getTraineeByUsername(String username) {
+		Trainee foundTrainee = traineeRepository.findByUsername(username);
+		return TraineeMapper.toProfile(foundTrainee);
 	}
 
 	@Override
 	public UserCreated createTrainee(TraineeRegister trainee) {
-		TraineeBasicDto created = traineeService.createTrainee(trainee);
-		if (created != null) {
-			TraineeFullDto dto = getTraineeById(created.getTraineeId());
-			return traineeMapper.mapCreationResponse(dto);
-		} else {
+		try {
+			
+			boolean exist = userRepository.findByUsername(
+					Randomizer.createUsername(
+							trainee.getFirstName(), trainee.getLastName())) != null;
+			
+			User newUser = new User(
+					null,
+					trainee.getFirstName(),
+					trainee.getLastName(),
+					exist ? Randomizer.createUsername(trainee.getFirstName(), trainee.getLastName())
+								.concat(Randomizer.getSerialNumber())
+						: Randomizer.createUsername(trainee.getFirstName(), trainee.getLastName()),
+					Randomizer.createPasword(trainee.getFirstName(), trainee.getLastName()),
+					true,
+					null,
+					null);
+			
+			Trainee newTrainee = new Trainee(
+					null,
+					trainee.getDateOfBirth(),
+					trainee.getAddress(),
+					newUser,
+					null);
+			
+			Trainee createdTrainee = traineeRepository.createTrainee(newTrainee);
+	
+			UserCreated response = new UserCreated();
+			response.setUsername(createdTrainee.getUserId().getUsername());
+			response.setPassword(createdTrainee.getUserId().getPassword());
+			
+			return response;
+		} catch (Exception e) {
+			e.printStackTrace();
 			return null;
-		}	
-	}
-
-	@Override
-	public TraineeUpdated updateTrainee(TraineeUpdate trainee) {
-		TraineeBasicDto updated = traineeService.updateTrainee(trainee);
-		if (updated != null) {
-			TraineeFullDto dto = getTraineeById(updated.getTraineeId());
-			return traineeMapper.mapUpdateResponse(dto);
-		} else {
-			return null;
-		}	
-	}
-
-	@Override
-	public boolean deleteTraineeById(String id) {
-		return traineeService.deleteTrainee(UUID.fromString(id));
-	}
-
-	@Override
-	public boolean deleteTraineeByUsername(String username) {
-		TraineeBasicDto traineeBasic = traineeService.getTraineeByUsername(username);
-		if (traineeBasic != null) {
-			return traineeService.deleteTrainee(traineeBasic.getTraineeId());
-		} else {
-			return false;
 		}
+	}
+
+	@Override
+	public TraineeBasicDto updateTrainee(TraineeUpdate update) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean deleteTrainee(UUID id) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public List<TraineeBasicDto> getAllByIds(List<UUID> trainees) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean changeTraineePassword(String username, String newPasword) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 	
-	private TraineeFullDto getTraineeById(UUID traineeId) {
-		TraineeBasicDto basic = traineeService.getTraineeById(traineeId);
-		if (basic != null) {
-			TraineeFullDto full = traineeMapper.mapBasicToFull(basic);
-			if (basic.getTrainers() != null && !basic.getTrainers().isEmpty()) {
-				full.setTrainers(
-						trainerMapper.mapBasicsToAssigned(
-							trainerService.getAllByIds(basic.getTrainers())));
-			} else {
-				full.setTrainers(Collections.emptyList());
-			}
-			return full;
-		} else {
-			return null;
-		}
-	}
 }
