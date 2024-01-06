@@ -13,6 +13,8 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
 
+import org.hibernate.annotations.GenericGenerator;
+
 import com.epam.projects.gym.domain.entity.Trainer;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -32,6 +34,7 @@ public class TrainerEntity implements Serializable {
 
 	@Id
     @GeneratedValue(generator = "uuid")
+    @GenericGenerator(name = "uuid", strategy = "uuid2")
 	@JsonProperty("trainerId")
 	private UUID trainerId;
 	
@@ -63,7 +66,7 @@ public class TrainerEntity implements Serializable {
 		return new Trainer(
 				trainerId,
 				specialization.getInfo(),
-				userId.toInfo(),
+				userId.getInfo(),
 				null);
 	}
 	

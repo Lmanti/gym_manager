@@ -17,6 +17,8 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
 
+import org.hibernate.annotations.GenericGenerator;
+
 import com.epam.projects.gym.domain.entity.Trainee;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -36,6 +38,7 @@ public class TraineeEntity implements Serializable {
 
 	@Id
     @GeneratedValue(generator = "uuid")
+    @GenericGenerator(name = "uuid", strategy = "uuid2")
 	@JsonProperty("traineeId")
 	private UUID traineeId;
 	
@@ -66,7 +69,7 @@ public class TraineeEntity implements Serializable {
 				traineeId,
 				dateOfBirth,
 				address,
-				userId.toInfo(),
+				userId.getInfo(),
 				trainers != null && !trainers.isEmpty()
 					? trainers.stream().map(TrainerEntity::getInfo).collect(Collectors.toList())
 					: Collections.emptyList());
