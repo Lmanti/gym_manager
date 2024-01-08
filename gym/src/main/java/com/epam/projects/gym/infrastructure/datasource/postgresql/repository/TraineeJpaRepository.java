@@ -11,4 +11,6 @@ public interface TraineeJpaRepository extends JpaRepository<TraineeEntity, UUID>
 	
 	public Optional<TraineeEntity> findByUserIdUsername(String username);
 	
+	public void deleteByUserIdUsername(String username);
+	
 }

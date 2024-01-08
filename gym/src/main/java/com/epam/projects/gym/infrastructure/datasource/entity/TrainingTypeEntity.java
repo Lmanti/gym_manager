@@ -1,13 +1,14 @@
 package com.epam.projects.gym.infrastructure.datasource.entity;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.UUID;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.OneToOne;
+import javax.persistence.OneToMany;
 
 import org.hibernate.annotations.GenericGenerator;
 
@@ -17,14 +18,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 import lombok.Setter;
 
-/**
- * Training type entity
- * @author lherreram
- *
- */
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
@@ -32,33 +27,23 @@ import lombok.Setter;
 @Setter
 public class TrainingTypeEntity implements Serializable {
 
-	/**
-	 * Serial
-	 */
 	private static final long serialVersionUID = 1L;
 
-	/**
-	 * Training type ID.
-	 */
 	@Id
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid2")
 	@JsonProperty("trainingTypeId")
 	private UUID trainingTypeId;
 	
-	/**
-	 * Training type name.
-	 */
-	@NonNull
 	@Column
 	@JsonProperty("name")
 	private String name;
 	
-	@OneToOne(mappedBy = "specialization")
+	@OneToMany(mappedBy = "specialization")
 	@JsonProperty("trainerId")
-    private TrainerEntity trainerId;
+    private List<TrainerEntity> trainerId;
 
-	public TrainingType getInfo() {
+	public TrainingType toDomain() {
 		return new TrainingType(trainingTypeId, name);
 	}
 

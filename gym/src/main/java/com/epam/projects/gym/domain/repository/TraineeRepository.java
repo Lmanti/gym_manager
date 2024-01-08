@@ -12,4 +12,8 @@ public interface TraineeRepository {
 
 	public Trainee findByUsername(String username);
 
+	public Trainee updateTrainee(Trainee trainee);
+
+	public boolean deleteTrainee(String username);
+
 }

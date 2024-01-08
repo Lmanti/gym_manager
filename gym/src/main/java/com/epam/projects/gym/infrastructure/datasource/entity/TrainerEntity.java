@@ -1,8 +1,10 @@
 package com.epam.projects.gym.infrastructure.datasource.entity;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -11,6 +13,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 
 import org.hibernate.annotations.GenericGenerator;
@@ -38,7 +41,7 @@ public class TrainerEntity implements Serializable {
 	@JsonProperty("trainerId")
 	private UUID trainerId;
 	
-	@OneToOne
+	@ManyToOne
 	@JoinColumn(name = "trainingTypeId")
 	@JsonProperty("specialization")
     private TrainingTypeEntity specialization;
@@ -58,14 +61,19 @@ public class TrainerEntity implements Serializable {
 	private List<TraineeEntity> trainees;
 
 	public Trainer toDomain() {
-		// TODO Auto-generated method stub
-		return null;
+		return new Trainer(
+				trainerId,
+				specialization.toDomain(),
+				userId.getInfo(),
+				trainees != null && !trainees.isEmpty()
+					? trainees.stream().map(TraineeEntity::getInfo).collect(Collectors.toList())
+					: Collections.emptyList());
 	}
 	
 	public Trainer getInfo() {
 		return new Trainer(
 				trainerId,
-				specialization.getInfo(),
+				specialization.toDomain(),
 				userId.getInfo(),
 				null);
 	}

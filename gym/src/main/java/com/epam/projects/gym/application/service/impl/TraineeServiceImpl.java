@@ -1,33 +1,32 @@
 package com.epam.projects.gym.application.service.impl;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.epam.projects.gym.application.dto.basic.TraineeBasicDto;
 import com.epam.projects.gym.application.dto.request.TraineeRegister;
 import com.epam.projects.gym.application.dto.request.TraineeUpdate;
 import com.epam.projects.gym.application.dto.response.TraineeProfile;
+import com.epam.projects.gym.application.dto.response.TraineeUpdated;
 import com.epam.projects.gym.application.dto.response.UserCreated;
 import com.epam.projects.gym.application.mapper.TraineeMapper;
 import com.epam.projects.gym.application.service.TraineeService;
 import com.epam.projects.gym.domain.entity.Trainee;
 import com.epam.projects.gym.domain.entity.User;
 import com.epam.projects.gym.domain.repository.TraineeRepository;
-import com.epam.projects.gym.domain.repository.UserRepository;
 import com.epam.projects.gym.domain.utils.Randomizer;
+import com.epam.projects.gym.infrastructure.exception.NotFoundException;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class TraineeServiceImpl implements TraineeService {
 	
-	private UserRepository userRepository;
-	
 	private TraineeRepository traineeRepository;
 	
-	public TraineeServiceImpl(UserRepository userRepository, TraineeRepository traineeRepository) {
-		this.userRepository = userRepository;
+	public TraineeServiceImpl(TraineeRepository traineeRepository) {
 		this.traineeRepository = traineeRepository;
 	}
 
@@ -38,24 +37,25 @@ public class TraineeServiceImpl implements TraineeService {
 	}
 
 	@Override
-	public TraineeBasicDto getTraineeById(UUID id) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public TraineeProfile getTraineeByUsername(String username) {
-		Trainee foundTrainee = traineeRepository.findByUsername(username);
-		return TraineeMapper.toProfile(foundTrainee);
+		try {
+			Trainee foundTrainee = traineeRepository.findByUsername(username);
+			if (foundTrainee != null) {
+				return TraineeMapper.toProfile(foundTrainee);			
+			} else {
+				throw new NotFoundException("Couldn't find a trainee with username: " + username);
+			}
+		} catch (Exception e) {
+			log.error(e.getMessage());
+			return null;
+		}
 	}
 
 	@Override
 	public UserCreated createTrainee(TraineeRegister trainee) {
 		try {
-			
-			boolean exist = userRepository.findByUsername(
-					Randomizer.createUsername(
-							trainee.getFirstName(), trainee.getLastName())) != null;
+			boolean exist = traineeRepository.findByUsername(
+					Randomizer.createUsername(trainee.getFirstName(), trainee.getLastName())) != null;
 			
 			User newUser = new User(
 					null,
@@ -84,33 +84,110 @@ public class TraineeServiceImpl implements TraineeService {
 			
 			return response;
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error(e.getMessage());
 			return null;
 		}
 	}
 
 	@Override
-	public TraineeBasicDto updateTrainee(TraineeUpdate update) {
-		// TODO Auto-generated method stub
-		return null;
+	public TraineeUpdated updateTrainee(TraineeUpdate update) {
+		try {
+			Trainee foundTrainee = traineeRepository.findByUsername(update.getUsername());
+			if (foundTrainee != null) {
+				
+				User user = new User(
+						foundTrainee.getUserId().getId(),
+						update.getFirstName(),
+						update.getLastName(),
+						update.getUsername(),
+						foundTrainee.getUserId().getPassword(),
+						update.isActive(),
+						null,
+						null);
+				
+				Trainee trainee = new Trainee(
+						foundTrainee.getId(),
+						update.getDateOfBirth(),
+						update.getAddress(),
+						user,
+						foundTrainee.getTrainers());
+				
+				Trainee updatedTrainee = traineeRepository.updateTrainee(trainee);
+				
+				return TraineeMapper.toUpdated(updatedTrainee);
+			} else {
+				throw new NotFoundException("Couldn't find a trainee with username: " + update.getUsername());
+			}
+		} catch (Exception e) {
+			log.error(e.getMessage());
+			return null;
+		}
+	}
+	
+	@Override
+	public boolean deleteTrainee(String username) {
+		try {
+			Trainee foundTrainee = traineeRepository.findByUsername(username);
+			if (foundTrainee != null) {
+				boolean deleted = traineeRepository.deleteTrainee(username);
+				return deleted;
+			} else {
+				throw new NotFoundException("Couldn't find a trainee with username: " + username);
+			}
+		} catch (Exception e) {
+			log.error(e.getMessage());
+			return false;
+		}
+	}
+	
+	@Override
+	public boolean loginTrainee(String username, String pasword) {
+		try {
+			Trainee foundTrainee = traineeRepository.findByUsername(username);
+			if (foundTrainee != null) {
+				boolean validation = foundTrainee.getUserId().getPassword().equals(pasword);
+				return validation;
+			} else {
+				throw new NotFoundException("Couldn't find a trainee with username: " + username);
+			}
+		} catch (Exception e) {
+			log.error(e.getMessage());
+			return false;
+		}
 	}
 
 	@Override
-	public boolean deleteTrainee(UUID id) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public List<TraineeBasicDto> getAllByIds(List<UUID> trainees) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public boolean changeTraineePassword(String username, String newPasword) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean changeTraineePassword(String username, String oldPasword, String newPasword) {
+		try {
+			Trainee foundTrainee = traineeRepository.findByUsername(username);
+			if (foundTrainee != null) {
+				User user = new User(
+						foundTrainee.getUserId().getId(),
+						foundTrainee.getUserId().getFirstName(),
+						foundTrainee.getUserId().getLastName(),
+						foundTrainee.getUserId().getUsername(),
+						newPasword,
+						foundTrainee.getUserId().isActive(),
+						null,
+						null);
+				
+				Trainee trainee = new Trainee(
+						foundTrainee.getId(),
+						foundTrainee.getDateOfBirth(),
+						foundTrainee.getAddress(),
+						user,
+						foundTrainee.getTrainers());
+				
+				traineeRepository.updateTrainee(trainee);
+				
+				return true;
+			} else {
+				throw new NotFoundException("Couldn't find a trainee with username: " + username);
+			}
+		} catch (Exception e) {
+			log.error(e.getMessage());
+			return false;
+		}
 	}
 	
 }

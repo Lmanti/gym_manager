@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.epam.projects.gym.domain.entity.Trainee;
 import com.epam.projects.gym.domain.repository.TraineeRepository;
@@ -26,6 +27,7 @@ public class TraineeAdapter implements TraineeRepository {
 		this.traineeJpaRepository = traineeJpaRepository;
 	}
 
+	@Transactional(rollbackFor = DatabaseException.class)
 	@Override
 	public Trainee createTrainee(Trainee newTrainee) {
 		try {
@@ -51,8 +53,8 @@ public class TraineeAdapter implements TraineeRepository {
 			TraineeEntity createdTrainee = traineeJpaRepository.save(trainee);
 			return createdTrainee.toDomain();
 		} catch (Exception e) {
-			log.error("Error while trying to register an user.", e);
-			throw new DatabaseException("Error while trying to register an user.", e);
+			log.error("Error while trying to register a Trainee.", e);
+			throw new DatabaseException("Error while trying to register a Trainee.", e);
 		}
 	}
 
@@ -66,8 +68,8 @@ public class TraineeAdapter implements TraineeRepository {
 				return Collections.emptyList();
 			}			
 		} catch (Exception e) {
-			log.error("Error while trying to fetch all users from the database.", e);
-			throw new DatabaseException("Error while trying to fetch all users from the database.", e);
+			log.error("Error while trying to fetch all Trainees from the database.", e);
+			throw new DatabaseException("Error while trying to fetch all Trainees from the database.", e);
 		}
 	}
 
@@ -83,6 +85,41 @@ public class TraineeAdapter implements TraineeRepository {
 		} catch (Exception e) {
 			log.error("Error while trying to fetch by username an users from the database.", e);
 			throw new DatabaseException("Error while trying to fetch by username an users from the database.", e);
+		}
+	}
+
+	@Transactional(rollbackFor = DatabaseException.class)
+	@Override
+	public Trainee updateTrainee(Trainee trainee) {
+		try {
+			Optional<TraineeEntity> foundTrainee = traineeJpaRepository
+					.findByUserIdUsername(trainee.getUserId().getUsername());
+			
+			foundTrainee.get().getUserId().setFirstName(trainee.getUserId().getFirstName());
+			foundTrainee.get().getUserId().setLastName(trainee.getUserId().getLastName());
+			foundTrainee.get().getUserId().setUsername(trainee.getUserId().getUsername());
+			foundTrainee.get().getUserId().setPassword(trainee.getUserId().getPassword());
+			foundTrainee.get().getUserId().setIsActive(trainee.getUserId().isActive());
+			foundTrainee.get().setAddress(trainee.getAddress());
+			foundTrainee.get().setDateOfBirth(trainee.getDateOfBirth());
+			
+			TraineeEntity updatedTrainee = traineeJpaRepository.save(foundTrainee.get());
+			return updatedTrainee.toDomain();
+		} catch (Exception e) {
+			log.error("Error while trying to update an user.", e);
+			throw new DatabaseException("Error while trying to update an user.", e);
+		}
+	}
+
+	@Transactional(rollbackFor = DatabaseException.class)
+	@Override
+	public boolean deleteTrainee(String username) {
+		try {
+			traineeJpaRepository.deleteByUserIdUsername(username);
+			return true;
+		} catch (Exception e) {
+			log.error("Error while trying to delete an user.", e);
+			throw new DatabaseException("Error while trying to delete an user.", e);
 		}
 	}
 

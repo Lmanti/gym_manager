@@ -3,15 +3,19 @@ package com.epam.projects.gym.infrastructure.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.epam.projects.gym.application.dto.request.TraineeRegister;
+import com.epam.projects.gym.application.dto.request.TraineeUpdate;
 import com.epam.projects.gym.application.dto.response.TraineeProfile;
+import com.epam.projects.gym.application.dto.response.TraineeUpdated;
 import com.epam.projects.gym.application.dto.response.UserCreated;
 import com.epam.projects.gym.application.service.TraineeService;
 
@@ -71,33 +75,34 @@ public class TraineeController {
 		}
     }
 	
-//	@PutMapping
-//	@ApiOperation(value = "Updates a trainee")
-//	@ApiResponses(value = {
-//            @ApiResponse(code = 201, message = "Trainee updated successfully."),
-//            @ApiResponse(code = 400, message = "Update failed, please check the info.")
-//    })
-//	public ResponseEntity<TraineeUpdated> updateTrainee(@RequestBody TraineeUpdate trainee) {
-//		TraineeUpdated updated = facade.updateTrainee(trainee);
-//		if (updated != null) {
-//			return ResponseEntity.status(201).body(updated);			
-//		} else {
-//			return ResponseEntity.status(400).build();
-//		}
-//    }
+	@PutMapping
+	@ApiOperation(value = "Updates a trainee")
+	@ApiResponses(value = {
+            @ApiResponse(code = 201, message = "Trainee updated successfully."),
+            @ApiResponse(code = 400, message = "Update failed, please check the info.")
+    })
+	public ResponseEntity<TraineeUpdated> updateTrainee(@RequestBody TraineeUpdate trainee) {
+		TraineeUpdated updated = traineeService.updateTrainee(trainee);
+		if (updated != null) {
+			return ResponseEntity.status(201).body(updated);			
+		} else {
+			return ResponseEntity.status(400).build();
+		}
+    }
 	
-//	@DeleteMapping("/{username}")
-//	@ApiOperation(value = "Delete a trainee by username.")
-//	@ApiResponses(value = {
-//            @ApiResponse(code = 200, message = "Trainee deleted successfully."),
-//            @ApiResponse(code = 404, message = "No trainee can be found.")
-//    })
-//	public ResponseEntity<Void> deleteTraineeByUsername(@RequestParam String username) {
-//		boolean deleted = facade.deleteTraineeByUsername(username);
-//		if (deleted) {
-//			return ResponseEntity.status(200).build();			
-//		} else {
-//			return ResponseEntity.status(404).build();
-//		}
-//    }
+	@DeleteMapping("/{username}")
+	@ApiOperation(value = "Delete a trainee by username.")
+	@ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Trainee deleted successfully."),
+            @ApiResponse(code = 404, message = "No trainee can be found.")
+    })
+	public ResponseEntity<Void> deleteTraineeByUsername(@RequestParam String username) {
+		boolean deleted = traineeService.deleteTrainee(username);
+		if (deleted) {
+			return ResponseEntity.status(200).build();			
+		} else {
+			return ResponseEntity.status(404).build();
+		}
+    }
+	
 }

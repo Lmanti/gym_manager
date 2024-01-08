@@ -75,4 +75,13 @@ public class TraineeEntity implements Serializable {
 					: Collections.emptyList());
 	}
 	
+	public Trainee getInfo() {
+		return new Trainee(
+				traineeId,
+				dateOfBirth,
+				address,
+				userId.getInfo(),
+				null);
+	}
+	
 }
