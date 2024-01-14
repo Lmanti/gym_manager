@@ -20,4 +20,13 @@ public class TrainerRegister extends UserRegister {
 	@JsonFormat(shape = JsonFormat.Shape.STRING)
 	private Specialization specialization;
 
+	public TrainerUpdate getSettingUsername(String username) {
+		TrainerUpdate trainer = new TrainerUpdate();
+		trainer.setFirstName(getFirstName());
+		trainer.setLastName(getLastName());
+		trainer.setUsername(username);
+		trainer.setSpecialization(specialization);
+		return trainer;
+	}
+
 }

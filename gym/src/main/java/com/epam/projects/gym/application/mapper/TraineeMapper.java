@@ -11,19 +11,19 @@ public class TraineeMapper {
 	
 	public static final TraineeAssignedDto toAssignedDto(Trainee trainee) {
 		TraineeAssignedDto dto = new TraineeAssignedDto();
-		dto.setUsername(trainee.getUserId().getUsername());
-		dto.setFirstName(trainee.getUserId().getFirstName());
-		dto.setLastName(trainee.getUserId().getLastName());
+		dto.setUsername(trainee.getUsername());
+		dto.setFirstName(trainee.getFirstName());
+		dto.setLastName(trainee.getLastName());
 		return dto;
 	}
 	
 	public static final TraineeProfile toProfile(Trainee trainee) {
 		TraineeProfile profile = new TraineeProfile();
-		profile.setFirstName(trainee.getUserId().getFirstName());
-		profile.setLastName(trainee.getUserId().getLastName());
+		profile.setFirstName(trainee.getFirstName());
+		profile.setLastName(trainee.getLastName());
 		profile.setDateOfBirth(trainee.getDateOfBirth());
 		profile.setAddress(trainee.getAddress());
-		profile.setActive(trainee.getUserId().isActive());
+		profile.setActive(trainee.getIsActive());
 		profile.setTrainers(trainee.getTrainers()
 				.stream()
 				.map(TrainerMapper::toAssignedDto)
@@ -33,12 +33,12 @@ public class TraineeMapper {
 	
 	public static final TraineeUpdated toUpdated(Trainee trainee) {
 		TraineeUpdated updated = new TraineeUpdated();
-		updated.setUsername(trainee.getUserId().getUsername());
-		updated.setFirstName(trainee.getUserId().getFirstName());
-		updated.setLastName(trainee.getUserId().getLastName());
+		updated.setUsername(trainee.getUsername());
+		updated.setFirstName(trainee.getFirstName());
+		updated.setLastName(trainee.getLastName());
 		updated.setDateOfBirth(trainee.getDateOfBirth());
 		updated.setAddress(trainee.getAddress());
-		updated.setActive(trainee.getUserId().isActive());
+		updated.setActive(trainee.getIsActive());
 		updated.setTrainers(trainee.getTrainers()
 				.stream()
 				.map(TrainerMapper::toAssignedDto)

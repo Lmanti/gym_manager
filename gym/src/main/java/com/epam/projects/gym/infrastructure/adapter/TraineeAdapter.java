@@ -30,14 +30,15 @@ public class TraineeAdapter implements TraineeRepository {
 	@Transactional(rollbackFor = DatabaseException.class)
 	@Override
 	public Trainee createTrainee(Trainee newTrainee) {
+		log.info("Creating trainee: {}", newTrainee);
 		try {
 			UserEntity newUser = new UserEntity(
 					null,
-					newTrainee.getUserId().getFirstName(),
-					newTrainee.getUserId().getLastName(),
-					newTrainee.getUserId().getUsername(),
-					newTrainee.getUserId().getPassword(),
-					newTrainee.getUserId().isActive(),
+					newTrainee.getFirstName(),
+					newTrainee.getLastName(),
+					newTrainee.getUsername(),
+					newTrainee.getPassword(),
+					newTrainee.getIsActive(),
 					null,
 					null);
 			
@@ -51,6 +52,7 @@ public class TraineeAdapter implements TraineeRepository {
 			newUser.setTraineeId(trainee);
 			
 			TraineeEntity createdTrainee = traineeJpaRepository.save(trainee);
+			log.info("Trainee created successfully with ID: {}", createdTrainee.getTraineeId());
 			return createdTrainee.toDomain();
 		} catch (Exception e) {
 			log.error("Error while trying to register a Trainee.", e);
@@ -74,14 +76,12 @@ public class TraineeAdapter implements TraineeRepository {
 	}
 
 	@Override
-	public Trainee findByUsername(String username) {
+	public Optional<Trainee> findByUsername(String username) {
 		try {
 			Optional<TraineeEntity> foundTrainee = traineeJpaRepository.findByUserIdUsername(username);
-			if (foundTrainee.isPresent()) {
-				return foundTrainee.get().toDomain();
-			} else {
-				return null;
-			}
+			return foundTrainee.isPresent()
+					? Optional.of(foundTrainee.get().toDomain())
+					: Optional.empty();
 		} catch (Exception e) {
 			log.error("Error while trying to fetch by username an users from the database.", e);
 			throw new DatabaseException("Error while trying to fetch by username an users from the database.", e);
@@ -91,31 +91,34 @@ public class TraineeAdapter implements TraineeRepository {
 	@Transactional(rollbackFor = DatabaseException.class)
 	@Override
 	public Trainee updateTrainee(Trainee trainee) {
+		log.info("Updating trainee: {}", trainee);
 		try {
 			Optional<TraineeEntity> foundTrainee = traineeJpaRepository
-					.findByUserIdUsername(trainee.getUserId().getUsername());
+					.findByUserIdUsername(trainee.getUsername());
 			
-			foundTrainee.get().getUserId().setFirstName(trainee.getUserId().getFirstName());
-			foundTrainee.get().getUserId().setLastName(trainee.getUserId().getLastName());
-			foundTrainee.get().getUserId().setUsername(trainee.getUserId().getUsername());
-			foundTrainee.get().getUserId().setPassword(trainee.getUserId().getPassword());
-			foundTrainee.get().getUserId().setIsActive(trainee.getUserId().isActive());
+			foundTrainee.get().getUserId().setFirstName(trainee.getFirstName());
+			foundTrainee.get().getUserId().setLastName(trainee.getLastName());
+			foundTrainee.get().getUserId().setPassword(trainee.getPassword());
+			foundTrainee.get().getUserId().setIsActive(trainee.getIsActive());
 			foundTrainee.get().setAddress(trainee.getAddress());
 			foundTrainee.get().setDateOfBirth(trainee.getDateOfBirth());
 			
 			TraineeEntity updatedTrainee = traineeJpaRepository.save(foundTrainee.get());
+			log.info("Trainee with ID '{}' updated successfully.", updatedTrainee.getTraineeId());
 			return updatedTrainee.toDomain();
 		} catch (Exception e) {
-			log.error("Error while trying to update an user.", e);
-			throw new DatabaseException("Error while trying to update an user.", e);
+			log.error("Error while trying to update a Trainee.", e);
+			throw new DatabaseException("Error while trying to update a Trainee.", e);
 		}
 	}
 
 	@Transactional(rollbackFor = DatabaseException.class)
 	@Override
 	public boolean deleteTrainee(String username) {
+		log.info("Deleting trainee with username: {}", username);
 		try {
 			traineeJpaRepository.deleteByUserIdUsername(username);
+			log.info("Trainee with username '{}' deleted succesfully.", username);
 			return true;
 		} catch (Exception e) {
 			log.error("Error while trying to delete an user.", e);

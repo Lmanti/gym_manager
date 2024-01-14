@@ -11,7 +11,6 @@ import javax.persistence.OneToOne;
 
 import org.hibernate.annotations.GenericGenerator;
 
-import com.epam.projects.gym.domain.entity.User;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AllArgsConstructor;
@@ -32,7 +31,7 @@ public class UserEntity implements Serializable {
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid2")
 	@JsonProperty("id")
-	private UUID id;
+	private UUID userId;
 	
 	@Column
 	@JsonProperty("firstName")
@@ -50,9 +49,6 @@ public class UserEntity implements Serializable {
 	@JsonProperty("password")
 	private String password;
 	
-	/**
-	 * {@link Boolean true} if the user is active {@link Boolean false} if not.
-	 */
 	@Column
 	@JsonProperty("isActive")
 	private Boolean isActive;
@@ -64,29 +60,5 @@ public class UserEntity implements Serializable {
 	@OneToOne(mappedBy = "userId")
 	@JsonProperty("TrainerId")
 	private TrainerEntity trainerId;
-	
-	public User toDomain() {
-		return new User(
-				id,
-				firstName,
-				lastName,
-				username,
-				password,
-				isActive,
-				traineeId != null ? traineeId.toDomain() : null,
-				trainerId != null ? trainerId.toDomain() : null);
-	}
-
-	public User getInfo() {
-		return new User(
-				id,
-				firstName,
-				lastName,
-				username,
-				password,
-				isActive,
-				null,
-				null);
-	}
 
 }

@@ -17,5 +17,15 @@ public class TraineeRegister extends UserRegister {
 	private LocalDate dateOfBirth;
 
 	private String address;
+	
+	public TraineeUpdate getSettingUsername(String username) {
+		TraineeUpdate trainee = new TraineeUpdate();
+		trainee.setFirstName(getFirstName());
+		trainee.setLastName(getLastName());
+		trainee.setUsername(username);
+		trainee.setDateOfBirth(dateOfBirth);
+		trainee.setAddress(address);
+		return trainee;
+	}
 
 }

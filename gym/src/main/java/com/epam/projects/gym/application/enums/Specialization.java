@@ -15,4 +15,21 @@ public enum Specialization {
 
     private String label;
     
+    public static Specialization identify(String name) {
+    	switch (name) {
+		case "Fitness":
+			return Fitness;
+		case "Yoga":
+			return Yoga;
+		case "Zumba":
+			return Zumba;
+		case "Stretching":
+			return Stretching;
+		case "Resistance":
+			return Resistance;
+		default:
+			return null;
+		}
+    }
+    
 }

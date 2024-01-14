@@ -1,12 +1,13 @@
 package com.epam.projects.gym.infrastructure.controller;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -52,9 +53,9 @@ public class TraineeController {
             @ApiResponse(code = 404, message = "No trainee can be found.")
     })
 	public ResponseEntity<TraineeProfile> getTraineeByUsername(@RequestParam String username) {
-		TraineeProfile trainee = traineeService.getTraineeByUsername(username);
-		if (trainee != null) {
-			return ResponseEntity.status(200).body(trainee);			
+		Optional<TraineeProfile> trainee = traineeService.getTraineeByUsername(username);
+		if (trainee.isPresent()) {
+			return ResponseEntity.status(200).body(trainee.get());			
 		} else {
 			return ResponseEntity.status(404).build();
 		}
@@ -67,24 +68,24 @@ public class TraineeController {
             @ApiResponse(code = 400, message = "Register failed, please check the info.")
     })
 	public ResponseEntity<UserCreated> createTrainee(@RequestBody TraineeRegister trainee) {
-		UserCreated newTrainee = traineeService.createTrainee(trainee);
-		if (newTrainee != null) {
-			return ResponseEntity.status(201).body(newTrainee);
+		Optional<UserCreated> newTrainee = traineeService.createTrainee(trainee);
+		if (newTrainee.isPresent()) {
+			return ResponseEntity.status(201).body(newTrainee.get());
 		} else {
 			return ResponseEntity.status(400).build();
 		}
     }
 	
-	@PutMapping
+	@PatchMapping
 	@ApiOperation(value = "Updates a trainee")
 	@ApiResponses(value = {
             @ApiResponse(code = 201, message = "Trainee updated successfully."),
             @ApiResponse(code = 400, message = "Update failed, please check the info.")
     })
 	public ResponseEntity<TraineeUpdated> updateTrainee(@RequestBody TraineeUpdate trainee) {
-		TraineeUpdated updated = traineeService.updateTrainee(trainee);
+		Optional<TraineeUpdated> updated = traineeService.updateTrainee(trainee);
 		if (updated != null) {
-			return ResponseEntity.status(201).body(updated);			
+			return ResponseEntity.status(201).body(updated.get());			
 		} else {
 			return ResponseEntity.status(400).build();
 		}

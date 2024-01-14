@@ -1,9 +1,11 @@
 package com.epam.projects.gym.domain.repository;
 
+import java.util.Optional;
+
 import com.epam.projects.gym.domain.entity.TrainingType;
 
 public interface TrainingTypeRepository {
 	
-	public TrainingType findByName(String trainingTypeName);
+	public Optional<TrainingType> findByName(String trainingTypeName);
 
 }

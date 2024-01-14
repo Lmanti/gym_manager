@@ -61,21 +61,32 @@ public class TrainerEntity implements Serializable {
 	private List<TraineeEntity> trainees;
 
 	public Trainer toDomain() {
-		return new Trainer(
-				trainerId,
-				specialization.toDomain(),
-				userId.getInfo(),
-				trainees != null && !trainees.isEmpty()
-					? trainees.stream().map(TraineeEntity::getInfo).collect(Collectors.toList())
-					: Collections.emptyList());
+		Trainer trainer = new Trainer(
+				userId.getFirstName(),
+				userId.getLastName(),
+				userId.getUsername(),
+				userId.getPassword(),
+				userId.getIsActive(),
+				specialization.toDomain());
+		trainer.setUserId(userId.getUserId());
+		trainer.setId(trainerId);
+		trainer.setTrainees(trainees != null && !trainees.isEmpty()
+				? trainees.stream().map(TraineeEntity::getBasicDomain).collect(Collectors.toList())
+				: Collections.emptyList());
+		return trainer;
 	}
 	
-	public Trainer getInfo() {
-		return new Trainer(
-				trainerId,
-				specialization.toDomain(),
-				userId.getInfo(),
-				null);
+	public Trainer getBasicDomain() {
+		Trainer trainer = new Trainer(
+				userId.getFirstName(),
+				userId.getLastName(),
+				userId.getUsername(),
+				userId.getPassword(),
+				userId.getIsActive(),
+				specialization.toDomain());
+		trainer.setUserId(userId.getUserId());
+		trainer.setId(trainerId);
+		return trainer;
 	}
 	
 }

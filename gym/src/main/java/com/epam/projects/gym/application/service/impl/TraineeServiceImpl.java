@@ -1,6 +1,7 @@
 package com.epam.projects.gym.application.service.impl;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -13,10 +14,10 @@ import com.epam.projects.gym.application.dto.response.UserCreated;
 import com.epam.projects.gym.application.mapper.TraineeMapper;
 import com.epam.projects.gym.application.service.TraineeService;
 import com.epam.projects.gym.domain.entity.Trainee;
-import com.epam.projects.gym.domain.entity.User;
 import com.epam.projects.gym.domain.repository.TraineeRepository;
 import com.epam.projects.gym.domain.utils.Randomizer;
 import com.epam.projects.gym.infrastructure.exception.NotFoundException;
+import com.epam.projects.gym.infrastructure.exception.NotMatchException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,98 +38,94 @@ public class TraineeServiceImpl implements TraineeService {
 	}
 
 	@Override
-	public TraineeProfile getTraineeByUsername(String username) {
+	public Optional<TraineeProfile> getTraineeByUsername(String username) {
 		try {
-			Trainee foundTrainee = traineeRepository.findByUsername(username);
-			if (foundTrainee != null) {
-				return TraineeMapper.toProfile(foundTrainee);			
+			Optional<Trainee> foundTrainee = traineeRepository.findByUsername(username);
+			if (foundTrainee.isPresent()) {
+				return Optional.of(TraineeMapper.toProfile(foundTrainee.get()));			
 			} else {
 				throw new NotFoundException("Couldn't find a trainee with username: " + username);
 			}
 		} catch (Exception e) {
 			log.error(e.getMessage());
-			return null;
+			return Optional.empty();
 		}
 	}
 
 	@Override
-	public UserCreated createTrainee(TraineeRegister trainee) {
+	public Optional<UserCreated> createTrainee(TraineeRegister trainee) {
 		try {
-			boolean exist = traineeRepository.findByUsername(
-					Randomizer.createUsername(trainee.getFirstName(), trainee.getLastName())) != null;
+			String randomUsername = null;
+			boolean exist = true;
 			
-			User newUser = new User(
-					null,
-					trainee.getFirstName(),
-					trainee.getLastName(),
-					exist ? Randomizer.createUsername(trainee.getFirstName(), trainee.getLastName())
-								.concat(Randomizer.getSerialNumber())
-						: Randomizer.createUsername(trainee.getFirstName(), trainee.getLastName()),
-					Randomizer.createPasword(trainee.getFirstName(), trainee.getLastName()),
-					true,
-					null,
-					null);
+			if (trainee instanceof TraineeUpdate) {
+				randomUsername = ((TraineeUpdate) trainee).getUsername();
+			} else {
+				randomUsername = 
+						Randomizer.createUsername(trainee.getFirstName(), trainee.getLastName());				
+			}
 			
-			Trainee newTrainee = new Trainee(
-					null,
-					trainee.getDateOfBirth(),
-					trainee.getAddress(),
-					newUser,
-					null);
+			exist = traineeRepository.findByUsername(randomUsername).isPresent();
 			
-			Trainee createdTrainee = traineeRepository.createTrainee(newTrainee);
-	
-			UserCreated response = new UserCreated();
-			response.setUsername(createdTrainee.getUserId().getUsername());
-			response.setPassword(createdTrainee.getUserId().getPassword());
-			
-			return response;
+			if (exist) {
+				return createTrainee(
+						trainee.getSettingUsername(
+							Randomizer.createUsername(trainee.getFirstName(), trainee.getLastName())
+							+ Randomizer.getSerialNumber()));
+			} else {
+				Trainee newTrainee = new Trainee(
+						trainee.getFirstName(),
+						trainee.getLastName(),
+						randomUsername,
+						Randomizer.createPasword(trainee.getFirstName(), trainee.getLastName()),
+						true,
+						trainee.getDateOfBirth(),
+						trainee.getAddress());
+				
+				Trainee createdTrainee = traineeRepository.createTrainee(newTrainee);
+		
+				UserCreated response = new UserCreated();
+				response.setUsername(createdTrainee.getUsername());
+				response.setPassword(createdTrainee.getPassword());
+				
+				return Optional.of(response);
+			}
 		} catch (Exception e) {
 			log.error(e.getMessage());
-			return null;
+			return Optional.empty();
 		}
 	}
 
 	@Override
-	public TraineeUpdated updateTrainee(TraineeUpdate update) {
+	public Optional<TraineeUpdated> updateTrainee(TraineeUpdate update) {
 		try {
-			Trainee foundTrainee = traineeRepository.findByUsername(update.getUsername());
-			if (foundTrainee != null) {
+			Optional<Trainee> foundTrainee = traineeRepository.findByUsername(update.getUsername());
+			if (foundTrainee.isPresent()) {
+				Trainee trainee = foundTrainee.get();
 				
-				User user = new User(
-						foundTrainee.getUserId().getId(),
-						update.getFirstName(),
-						update.getLastName(),
-						update.getUsername(),
-						foundTrainee.getUserId().getPassword(),
-						update.isActive(),
-						null,
-						null);
-				
-				Trainee trainee = new Trainee(
-						foundTrainee.getId(),
-						update.getDateOfBirth(),
-						update.getAddress(),
-						user,
-						foundTrainee.getTrainers());
+				trainee.setFirstName(update.getFirstName());
+				trainee.setLastName(update.getLastName());
+				trainee.setDateOfBirth(update.getDateOfBirth());
+				trainee.setAddress(update.getAddress());
+				trainee.setIsActive(update.isActive());
 				
 				Trainee updatedTrainee = traineeRepository.updateTrainee(trainee);
 				
-				return TraineeMapper.toUpdated(updatedTrainee);
+				return Optional.of(TraineeMapper.toUpdated(updatedTrainee));
 			} else {
 				throw new NotFoundException("Couldn't find a trainee with username: " + update.getUsername());
 			}
 		} catch (Exception e) {
 			log.error(e.getMessage());
-			return null;
+			return Optional.empty();
 		}
 	}
 	
 	@Override
 	public boolean deleteTrainee(String username) {
 		try {
-			Trainee foundTrainee = traineeRepository.findByUsername(username);
-			if (foundTrainee != null) {
+			Optional<Trainee> foundTrainee = traineeRepository.findByUsername(username);
+			if (foundTrainee.isPresent()) {
 				boolean deleted = traineeRepository.deleteTrainee(username);
 				return deleted;
 			} else {
@@ -141,11 +138,11 @@ public class TraineeServiceImpl implements TraineeService {
 	}
 	
 	@Override
-	public boolean loginTrainee(String username, String pasword) {
+	public boolean loginTrainee(String username, String password) {
 		try {
-			Trainee foundTrainee = traineeRepository.findByUsername(username);
-			if (foundTrainee != null) {
-				boolean validation = foundTrainee.getUserId().getPassword().equals(pasword);
+			Optional<Trainee> foundTrainee = traineeRepository.findByUsername(username);
+			if (foundTrainee.isPresent()) {
+				boolean validation = foundTrainee.get().getPassword().equals(password);
 				return validation;
 			} else {
 				throw new NotFoundException("Couldn't find a trainee with username: " + username);
@@ -159,28 +156,17 @@ public class TraineeServiceImpl implements TraineeService {
 	@Override
 	public boolean changeTraineePassword(String username, String oldPasword, String newPasword) {
 		try {
-			Trainee foundTrainee = traineeRepository.findByUsername(username);
-			if (foundTrainee != null) {
-				User user = new User(
-						foundTrainee.getUserId().getId(),
-						foundTrainee.getUserId().getFirstName(),
-						foundTrainee.getUserId().getLastName(),
-						foundTrainee.getUserId().getUsername(),
-						newPasword,
-						foundTrainee.getUserId().isActive(),
-						null,
-						null);
+			Optional<Trainee> foundTrainee = traineeRepository.findByUsername(username);
+			if (foundTrainee.isPresent()) {
+				Trainee trainee = foundTrainee.get();
 				
-				Trainee trainee = new Trainee(
-						foundTrainee.getId(),
-						foundTrainee.getDateOfBirth(),
-						foundTrainee.getAddress(),
-						user,
-						foundTrainee.getTrainers());
-				
-				traineeRepository.updateTrainee(trainee);
-				
-				return true;
+				if (trainee.getPassword().equals(oldPasword)) {
+					trainee.setPassword(newPasword);
+					traineeRepository.updateTrainee(trainee);
+					return true;					
+				} else {
+					throw new NotMatchException("Invalid Password.");
+				}				
 			} else {
 				throw new NotFoundException("Couldn't find a trainee with username: " + username);
 			}

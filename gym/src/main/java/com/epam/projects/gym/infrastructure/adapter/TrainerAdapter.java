@@ -44,13 +44,13 @@ public class TrainerAdapter implements TrainerRepository {
 	}
 
 	@Override
-	public Trainer findByUsername(String username) {
+	public Optional<Trainer> findByUsername(String username) {
 		try {
 			Optional<TrainerEntity> foundTrainer = trainerJpaRepository.findByUserIdUsername(username);
 			if (foundTrainer.isPresent()) {
-				return foundTrainer.get().toDomain();
+				return Optional.of(foundTrainer.get().toDomain());
 			} else {
-				return null;
+				return Optional.empty();
 			}
 		} catch (Exception e) {
 			log.error("Error while trying to fetch by username a Trainer from the database.", e);
@@ -61,14 +61,15 @@ public class TrainerAdapter implements TrainerRepository {
 	@Transactional(rollbackFor = DatabaseException.class)
 	@Override
 	public Trainer createTrainer(Trainer newTrainer) {
+		log.info("Creating trainer: {}", newTrainer);
 		try {
 			UserEntity newUser = new UserEntity(
 					null,
-					newTrainer.getUserId().getFirstName(),
-					newTrainer.getUserId().getLastName(),
-					newTrainer.getUserId().getUsername(),
-					newTrainer.getUserId().getPassword(),
-					newTrainer.getUserId().isActive(),
+					newTrainer.getFirstName(),
+					newTrainer.getLastName(),
+					newTrainer.getUsername(),
+					newTrainer.getPassword(),
+					newTrainer.getIsActive(),
 					null,
 					null);
 			
@@ -84,10 +85,33 @@ public class TrainerAdapter implements TrainerRepository {
 			newUser.setTrainerId(trainer);
 			
 			TrainerEntity createdTrainer = trainerJpaRepository.save(trainer);
+			log.info("Trainer created successfully with ID: {}", createdTrainer.getTrainerId());
 			return createdTrainer.toDomain();
 		} catch (Exception e) {
 			log.error("Error while trying to register a Trainer.", e);
 			throw new DatabaseException("Error while trying to register a Trainer.", e);
+		}
+	}
+
+	@Transactional(rollbackFor = DatabaseException.class)
+	@Override
+	public Trainer updateTrainer(Trainer trainer) {
+		log.info("Updating trainer: {}", trainer);
+		try {
+			Optional<TrainerEntity> foundTrainer = trainerJpaRepository
+					.findByUserIdUsername(trainer.getUsername());
+			
+			foundTrainer.get().getUserId().setFirstName(trainer.getFirstName());
+			foundTrainer.get().getUserId().setLastName(trainer.getLastName());
+			foundTrainer.get().getUserId().setPassword(trainer.getPassword());
+			foundTrainer.get().getUserId().setIsActive(trainer.getIsActive());
+			
+			TrainerEntity updatedTrainer = trainerJpaRepository.save(foundTrainer.get());
+			log.info("Trainer with ID '{}' updated successfully.", updatedTrainer.getTrainerId());
+			return updatedTrainer.toDomain();
+		} catch (Exception e) {
+			log.error("Error while trying to update a Trainer.", e);
+			throw new DatabaseException("Error while trying to update a Trainer.", e);
 		}
 	}
 

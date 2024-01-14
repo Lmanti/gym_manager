@@ -1,6 +1,7 @@
 package com.epam.projects.gym.application.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.epam.projects.gym.application.dto.request.TraineeRegister;
 import com.epam.projects.gym.application.dto.request.TraineeUpdate;
@@ -12,15 +13,15 @@ public interface TraineeService {
 	
 	public List<TraineeProfile> getAllTrainees();
 	
-	public TraineeProfile getTraineeByUsername(String username);
+	public Optional<TraineeProfile> getTraineeByUsername(String username);
 
-	public UserCreated createTrainee(TraineeRegister trainee);
+	public Optional<UserCreated> createTrainee(TraineeRegister trainee);
 	
-	public TraineeUpdated updateTrainee(TraineeUpdate update);
+	public Optional<TraineeUpdated> updateTrainee(TraineeUpdate update);
 	
 	public boolean deleteTrainee(String username);
 
-	public boolean changeTraineePassword(String username, String oldPasword, String newPasword);
+	public boolean changeTraineePassword(String username, String oldPassword, String newPassword);
 
-	public boolean loginTrainee(String username, String pasword);
+	public boolean loginTrainee(String username, String password);
 }
