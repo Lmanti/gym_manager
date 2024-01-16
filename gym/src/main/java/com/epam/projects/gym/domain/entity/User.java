@@ -2,16 +2,17 @@ package com.epam.projects.gym.domain.entity;
 
 import java.util.UUID;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
-@AllArgsConstructor
+@ToString
 public class User {
 
-	private UUID id;
+	private UUID userId;
 
 	private String firstName;
 
@@ -21,10 +22,24 @@ public class User {
 
 	private String password;
 
-	private boolean isActive;
+	private Boolean isActive;
 	
 	private Trainee traineeId;
 	
 	private Trainer trainerId;
+	
+	public User(
+			@NonNull String firstName,
+			@NonNull String lastName,
+			@NonNull String username,
+			@NonNull String password,
+			@NonNull Boolean isActive
+			) {
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.username = username;
+		this.password = password;
+		this.isActive = isActive;
+	}
 
 }

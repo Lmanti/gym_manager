@@ -3,49 +3,44 @@ package com.epam.projects.gym.domain.entity;
 import java.time.LocalDate;
 import java.util.UUID;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
+import lombok.ToString;
 
-/**
- * Training entity.
- * @author lherreram
- *
- */
-@Data
+@Getter
+@Setter
+@ToString
 public class Training {
 
-	/**
-	 * Trainer's ID.
-	 */
 	private UUID id;
-	
-	/**
-	 * Registered trainee for this training.
-	 */
+
 	private Trainee traineeId;
-	
-	/**
-	 * Designated trainer for this training.
-	 */
+
 	private Trainer trainerId;
-	
-	/**
-	 * Training name.
-	 */
+
 	private String name;
-	
-	/**
-	 * Training type for this training.
-	 */
+
 	private TrainingType trainingTypeId;
-	
-	/**
-	 * Training date.
-	 */
+
 	private LocalDate trainingDate;
+
+	private Integer duration;
 	
-	/**
-	 * Training duration.
-	 */
-	private int duration;
+	public Training(
+			@NonNull Trainee traineeId,
+			@NonNull Trainer trainerId,
+			@NonNull String name,
+			@NonNull TrainingType trainingTypeId,
+			@NonNull LocalDate trainingDate,
+			@NonNull Integer duration
+			) {
+		this.traineeId = traineeId;
+		this.trainerId = trainerId;
+		this.name = name;
+		this.trainingTypeId = trainingTypeId;
+		this.trainingDate = trainingDate;
+		this.duration = duration;
+	}
 	
 }

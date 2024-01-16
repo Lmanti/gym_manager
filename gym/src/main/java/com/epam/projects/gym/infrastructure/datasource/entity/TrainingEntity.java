@@ -13,86 +13,80 @@ import javax.persistence.ManyToOne;
 
 import org.hibernate.annotations.GenericGenerator;
 
+import com.epam.projects.gym.domain.entity.Training;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
 
-/**
- * Training entity.
- * @author lherreram
- *
- */
 @Entity
-@AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 public class TrainingEntity implements Serializable {
-	
-	/**
-	 * Serial
-	 */
+
 	private static final long serialVersionUID = 1L;
 
-	/**
-	 * Trainer's ID.
-	 */
 	@Id
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid2")
 	@JsonProperty("trainingId")
 	private UUID trainingId;
-	
-	/**
-	 * Registered trainee for this training.
-	 */
+
 	@ManyToOne
     @JoinColumn(name = "traineeId")
 	@JsonProperty("traineeId")
 	private TraineeEntity traineeId;
-	
-	/**
-	 * Designated trainer for this training.
-	 */
+
 	@ManyToOne
     @JoinColumn(name = "trainerId")
 	@JsonProperty("trainerId")
 	private TrainerEntity trainerId;
-	
-	/**
-	 * Training name.
-	 */
-	@NonNull
-	@Column
+
+	@Column(nullable = false)
 	@JsonProperty("name")
 	private String name;
-	
-	/**
-	 * Training type for this training.
-	 */
+
 	@ManyToOne
     @JoinColumn(name = "trainingTypeId")
 	@JsonProperty("trainingTypeId")
 	private TrainingTypeEntity trainingTypeId;
-	
-	/**
-	 * Training date.
-	 */
-	@NonNull
-	@Column
+
+	@Column(nullable = false)
 	@JsonProperty("trainingDate")
 	private LocalDate trainingDate;
-	
-	/**
-	 * Training duration.
-	 */
-	@NonNull
-	@Column
+
+	@Column(nullable = false)
 	@JsonProperty("duration")
 	private Integer duration;
+	
+	public TrainingEntity(
+			@NonNull TraineeEntity traineeId,
+			@NonNull TrainerEntity trainerId,
+			@NonNull String name,
+			@NonNull TrainingTypeEntity trainingTypeId,
+			@NonNull LocalDate trainingDate,
+			@NonNull Integer duration
+			) {
+		this.traineeId = traineeId;
+		this.trainerId = trainerId;
+		this.name = name;
+		this.trainingTypeId = trainingTypeId;
+		this.trainingDate = trainingDate;
+		this.duration = duration;
+	}
+
+	public Training toDomain() {
+		Training training = new Training(
+				traineeId.getBasicDomain(),
+				trainerId.getBasicDomain(),
+				name,
+				trainingTypeId.toDomain(),
+				trainingDate,
+				duration);
+		return training;
+	}
 
 }
