@@ -33,21 +33,16 @@ public class TraineeAdapter implements TraineeRepository {
 		log.info("Creating trainee: {}", newTrainee);
 		try {
 			UserEntity newUser = new UserEntity(
-					null,
 					newTrainee.getFirstName(),
 					newTrainee.getLastName(),
 					newTrainee.getUsername(),
 					newTrainee.getPassword(),
-					newTrainee.getIsActive(),
-					null,
-					null);
+					newTrainee.getIsActive());
 			
 			TraineeEntity trainee = new TraineeEntity(
-					null,
 					newTrainee.getDateOfBirth(),
 					newTrainee.getAddress(),
-					newUser,
-					null);
+					newUser);
 			
 			newUser.setTraineeId(trainee);
 			

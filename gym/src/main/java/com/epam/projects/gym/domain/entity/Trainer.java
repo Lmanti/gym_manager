@@ -10,7 +10,7 @@ import lombok.ToString;
 
 @Getter
 @Setter
-@ToString
+@ToString(callSuper = true)
 public class Trainer extends User {
 
 	private UUID id;

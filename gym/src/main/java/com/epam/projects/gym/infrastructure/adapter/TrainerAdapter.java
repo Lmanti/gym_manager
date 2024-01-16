@@ -14,6 +14,7 @@ import com.epam.projects.gym.infrastructure.datasource.entity.TrainerEntity;
 import com.epam.projects.gym.infrastructure.datasource.entity.TrainingTypeEntity;
 import com.epam.projects.gym.infrastructure.datasource.entity.UserEntity;
 import com.epam.projects.gym.infrastructure.datasource.postgresql.repository.TrainerJpaRepository;
+import com.epam.projects.gym.infrastructure.datasource.postgresql.repository.TrainingTypeJpaRepository;
 import com.epam.projects.gym.infrastructure.exception.DatabaseException;
 
 import lombok.extern.slf4j.Slf4j;
@@ -24,8 +25,14 @@ public class TrainerAdapter implements TrainerRepository {
 	
 	private TrainerJpaRepository trainerJpaRepository;
 	
-	public TrainerAdapter(TrainerJpaRepository trainerJpaRepository) {
+	private TrainingTypeJpaRepository trainingTypeJpaRepository;
+	
+	public TrainerAdapter(
+			TrainerJpaRepository trainerJpaRepository,
+			TrainingTypeJpaRepository trainingTypeJpaRepository
+			) {
 		this.trainerJpaRepository = trainerJpaRepository;
+		this.trainingTypeJpaRepository = trainingTypeJpaRepository;
 	}
 	
 	@Override
@@ -63,24 +70,18 @@ public class TrainerAdapter implements TrainerRepository {
 	public Trainer createTrainer(Trainer newTrainer) {
 		log.info("Creating trainer: {}", newTrainer);
 		try {
+			Optional<TrainingTypeEntity> trainingType = trainingTypeJpaRepository.findById(newTrainer.getSpecialization().getId());
+			
 			UserEntity newUser = new UserEntity(
-					null,
 					newTrainer.getFirstName(),
 					newTrainer.getLastName(),
 					newTrainer.getUsername(),
 					newTrainer.getPassword(),
-					newTrainer.getIsActive(),
-					null,
-					null);
+					newTrainer.getIsActive());
 			
 			TrainerEntity trainer = new TrainerEntity(
-					null,
-					new TrainingTypeEntity(
-							newTrainer.getSpecialization().getId(),
-							newTrainer.getSpecialization().getName(),
-							null),
-					newUser,
-					null);
+					trainingType.get(),
+					newUser);
 			
 			newUser.setTrainerId(trainer);
 			

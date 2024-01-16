@@ -13,13 +13,12 @@ import org.hibernate.annotations.GenericGenerator;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.Setter;
 
 @Entity
-@AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
@@ -60,5 +59,19 @@ public class UserEntity implements Serializable {
 	@OneToOne(mappedBy = "userId")
 	@JsonProperty("TrainerId")
 	private TrainerEntity trainerId;
+	
+	public UserEntity(
+			@NonNull String firstName,
+			@NonNull String lastName,
+			@NonNull String username,
+			@NonNull String password,
+			@NonNull Boolean isActive
+			) {
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.username = username;
+		this.password = password;
+		this.isActive = isActive;
+	}
 
 }

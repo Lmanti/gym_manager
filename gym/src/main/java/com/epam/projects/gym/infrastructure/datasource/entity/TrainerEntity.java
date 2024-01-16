@@ -14,6 +14,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 
 import org.hibernate.annotations.GenericGenerator;
@@ -21,13 +22,12 @@ import org.hibernate.annotations.GenericGenerator;
 import com.epam.projects.gym.domain.entity.Trainer;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.Setter;
 
 @Entity
-@AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
@@ -59,6 +59,18 @@ public class TrainerEntity implements Serializable {
     )
 	@JsonProperty("trainees")
 	private List<TraineeEntity> trainees;
+	
+	@OneToMany(mappedBy = "trainerId")
+	@JsonProperty("trainingId")
+	private List<TrainingEntity> trainingId;
+	
+	public TrainerEntity(
+			@NonNull TrainingTypeEntity specialization,
+			@NonNull UserEntity userId
+			) {
+		this.specialization = specialization;
+		this.userId = userId;
+	}
 
 	public Trainer toDomain() {
 		Trainer trainer = new Trainer(
