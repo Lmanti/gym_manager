@@ -8,13 +8,17 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.epam.projects.gym.application.dto.TrainerAssignedDto;
+import com.epam.projects.gym.application.dto.request.ChangeUserStatus;
 import com.epam.projects.gym.application.dto.request.TraineeRegister;
 import com.epam.projects.gym.application.dto.request.TraineeUpdate;
+import com.epam.projects.gym.application.dto.request.UpdateTrainerList;
 import com.epam.projects.gym.application.dto.response.TraineeProfile;
 import com.epam.projects.gym.application.dto.response.TraineeUpdated;
 import com.epam.projects.gym.application.dto.response.UserCreated;
@@ -76,7 +80,7 @@ public class TraineeController {
 		}
     }
 	
-	@PatchMapping
+	@PutMapping
 	@ApiOperation(value = "Updates a trainee")
 	@ApiResponses(value = {
             @ApiResponse(code = 201, message = "Trainee updated successfully."),
@@ -84,11 +88,36 @@ public class TraineeController {
     })
 	public ResponseEntity<TraineeUpdated> updateTrainee(@RequestBody TraineeUpdate trainee) {
 		Optional<TraineeUpdated> updated = traineeService.updateTrainee(trainee);
-		if (updated != null) {
+		if (updated.isPresent()) {
 			return ResponseEntity.status(201).body(updated.get());			
 		} else {
 			return ResponseEntity.status(400).build();
 		}
+    }
+	
+	@PatchMapping
+	@ApiOperation(value = "Activate/De-Activate a trainee")
+	@ApiResponses(value = {
+            @ApiResponse(code = 201, message = "Trainee updated successfully."),
+            @ApiResponse(code = 404, message = "Update failed, please check the info.")
+    })
+	public ResponseEntity<Void> activateDeactivateTrainee(@RequestBody ChangeUserStatus request) {
+		boolean isChanged = traineeService.changeTraineeStatus(request);
+		if (isChanged) {
+			return ResponseEntity.status(200).build();
+		} else {
+			return ResponseEntity.status(401).build();
+		}
+    }
+	
+	@PutMapping("/trainerList")
+	@ApiOperation(value = "Updates a trainee's trainer list.")
+	@ApiResponses(value = {
+            @ApiResponse(code = 201, message = "Trainee's list updated successfully.")
+    })
+	public ResponseEntity<List<TrainerAssignedDto>> updateTraineeTrainerList(@RequestBody UpdateTrainerList newData) {
+		List<TrainerAssignedDto> updatedData = traineeService.updateTrainerList(newData);
+		return ResponseEntity.status(200).body(updatedData);
     }
 	
 	@DeleteMapping("/{username}")

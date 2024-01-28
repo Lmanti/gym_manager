@@ -1,23 +1,30 @@
 package com.epam.projects.gym.application.service.impl;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.epam.projects.gym.application.dto.TrainerAssignedDto;
+import com.epam.projects.gym.application.dto.request.ChangeUserStatus;
 import com.epam.projects.gym.application.dto.request.TraineeRegister;
+import com.epam.projects.gym.application.dto.request.TraineeTraining;
 import com.epam.projects.gym.application.dto.request.TraineeUpdate;
+import com.epam.projects.gym.application.dto.request.UpdateTrainerList;
 import com.epam.projects.gym.application.dto.response.TraineeProfile;
 import com.epam.projects.gym.application.dto.response.TraineeUpdated;
 import com.epam.projects.gym.application.dto.response.UserCreated;
 import com.epam.projects.gym.application.mapper.TraineeMapper;
+import com.epam.projects.gym.application.mapper.TrainerMapper;
 import com.epam.projects.gym.application.service.TraineeService;
 import com.epam.projects.gym.domain.entity.Trainee;
+import com.epam.projects.gym.domain.exception.NotFoundException;
+import com.epam.projects.gym.domain.exception.NotMatchException;
 import com.epam.projects.gym.domain.repository.TraineeRepository;
+import com.epam.projects.gym.domain.repository.TrainerRepository;
 import com.epam.projects.gym.domain.utils.Randomizer;
-import com.epam.projects.gym.infrastructure.exception.NotFoundException;
-import com.epam.projects.gym.infrastructure.exception.NotMatchException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,8 +34,11 @@ public class TraineeServiceImpl implements TraineeService {
 	
 	private TraineeRepository traineeRepository;
 	
-	public TraineeServiceImpl(TraineeRepository traineeRepository) {
+	private TrainerRepository trainerRepository;
+	
+	public TraineeServiceImpl(TraineeRepository traineeRepository, TrainerRepository trainerRepository) {
 		this.traineeRepository = traineeRepository;
+		this.trainerRepository = trainerRepository;
 	}
 
 	@Override
@@ -169,6 +179,49 @@ public class TraineeServiceImpl implements TraineeService {
 				}				
 			} else {
 				throw new NotFoundException("Couldn't find a trainee with username: " + username);
+			}
+		} catch (Exception e) {
+			log.error(e.getMessage());
+			return false;
+		}
+	}
+
+	@Override
+	public List<TrainerAssignedDto> updateTrainerList(UpdateTrainerList newData) {
+		try {
+			Optional<Trainee> foundTrainee = traineeRepository.findByUsername(newData.getUsername());
+			if (foundTrainee.isPresent()) {
+				newData.getTrainerList().stream().forEach(trainerUsername -> {
+					if (!trainerRepository.findByUsername(trainerUsername).isPresent()) {
+						throw new NotFoundException("Couldn't find a trainee with username: " + trainerUsername);
+					}
+				});
+				TraineeTraining specification = new TraineeTraining();
+				specification.setUsername(newData.getUsername());
+				return traineeRepository.assignTrainerBulk(specification, newData.getTrainerList())
+						.stream()
+						.map(TrainerMapper::toAssignedDto)
+						.collect(Collectors.toList());
+			} else {
+				throw new NotFoundException("Couldn't find a trainee with username: " + newData.getUsername());
+			}
+		} catch (Exception e) {
+			log.error(e.getMessage());
+			return Collections.emptyList();
+		}
+	}
+
+	@Override
+	public boolean changeTraineeStatus(ChangeUserStatus request) {
+		try {
+			Optional<Trainee> foundTrainee = traineeRepository.findByUsername(request.getUsername());
+			if (foundTrainee.isPresent()) {
+				Trainee trainee = foundTrainee.get();
+				trainee.setIsActive(request.isActive());
+				traineeRepository.updateTrainee(trainee);
+				return true;
+			} else {
+				throw new NotFoundException("Couldn't find a trainee with username: " + request.getUsername());
 			}
 		} catch (Exception e) {
 			log.error(e.getMessage());

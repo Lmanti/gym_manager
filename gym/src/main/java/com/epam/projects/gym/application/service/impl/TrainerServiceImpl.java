@@ -6,6 +6,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.epam.projects.gym.application.dto.TrainerAssignedDto;
+import com.epam.projects.gym.application.dto.request.ChangeUserStatus;
 import com.epam.projects.gym.application.dto.request.TrainerRegister;
 import com.epam.projects.gym.application.dto.request.TrainerUpdate;
 import com.epam.projects.gym.application.dto.response.TrainerProfile;
@@ -15,11 +17,11 @@ import com.epam.projects.gym.application.mapper.TrainerMapper;
 import com.epam.projects.gym.application.service.TrainerService;
 import com.epam.projects.gym.domain.entity.Trainer;
 import com.epam.projects.gym.domain.entity.TrainingType;
+import com.epam.projects.gym.domain.exception.NotFoundException;
+import com.epam.projects.gym.domain.exception.NotMatchException;
 import com.epam.projects.gym.domain.repository.TrainerRepository;
 import com.epam.projects.gym.domain.repository.TrainingTypeRepository;
 import com.epam.projects.gym.domain.utils.Randomizer;
-import com.epam.projects.gym.infrastructure.exception.NotFoundException;
-import com.epam.projects.gym.infrastructure.exception.NotMatchException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -164,6 +166,30 @@ public class TrainerServiceImpl implements TrainerService {
 				}				
 			} else {
 				throw new NotFoundException("Couldn't find a trainer with username: " + username);
+			}
+		} catch (Exception e) {
+			log.error(e.getMessage());
+			return false;
+		}
+	}
+
+	@Override
+	public List<TrainerAssignedDto> getAllNonAssociatedTrainers(String username) {
+		List<Trainer> trainers = trainerRepository.getAllNonAssociatedTrainers(username);
+		return trainers.stream().map(TrainerMapper::toAssignedDto).collect(Collectors.toList());
+	}
+
+	@Override
+	public boolean changeTrainerStatus(ChangeUserStatus request) {
+		try {
+			Optional<Trainer> foundTrainer = trainerRepository.findByUsername(request.getUsername());
+			if (foundTrainer.isPresent()) {
+				Trainer trainer = foundTrainer.get();
+				trainer.setIsActive(request.isActive());
+				trainerRepository.updateTrainer(trainer);
+				return true;
+			} else {
+				throw new NotFoundException("Couldn't find a trainer with username: " + request.getUsername());
 			}
 		} catch (Exception e) {
 			log.error(e.getMessage());

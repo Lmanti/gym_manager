@@ -1,4 +1,4 @@
-package com.epam.projects.gym.infrastructure.exception;
+package com.epam.projects.gym.domain.exception;
 
 public class NotMatchException extends RuntimeException {
 

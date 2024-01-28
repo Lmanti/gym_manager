@@ -1,5 +1,7 @@
 package com.epam.projects.gym.infrastructure.adapter;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -8,12 +10,20 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.epam.projects.gym.application.dto.request.TraineeTraining;
+import com.epam.projects.gym.application.specification.TrainingSpecification;
 import com.epam.projects.gym.domain.entity.Trainee;
+import com.epam.projects.gym.domain.entity.Trainer;
 import com.epam.projects.gym.domain.repository.TraineeRepository;
 import com.epam.projects.gym.infrastructure.datasource.entity.TraineeEntity;
+import com.epam.projects.gym.infrastructure.datasource.entity.TrainerEntity;
+import com.epam.projects.gym.infrastructure.datasource.entity.TrainingEntity;
 import com.epam.projects.gym.infrastructure.datasource.entity.UserEntity;
 import com.epam.projects.gym.infrastructure.datasource.postgresql.repository.TraineeJpaRepository;
+import com.epam.projects.gym.infrastructure.datasource.postgresql.repository.TrainerJpaRepository;
+import com.epam.projects.gym.infrastructure.datasource.postgresql.repository.TrainingJpaRepository;
 import com.epam.projects.gym.infrastructure.exception.DatabaseException;
+import com.epam.projects.gym.infrastructure.specification.TrainingEntitySpecification;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,8 +33,18 @@ public class TraineeAdapter implements TraineeRepository {
 
 	private TraineeJpaRepository traineeJpaRepository;
 	
-	public TraineeAdapter(TraineeJpaRepository traineeJpaRepository) {
+	private TrainerJpaRepository trainerJpaRepository;
+	
+	private TrainingJpaRepository trainingJpaRepository;
+	
+	public TraineeAdapter(
+			TraineeJpaRepository traineeJpaRepository,
+			TrainerJpaRepository trainerJpaRepository,
+			TrainingJpaRepository trainingJpaRepository
+			) {
 		this.traineeJpaRepository = traineeJpaRepository;
+		this.trainerJpaRepository = trainerJpaRepository;
+		this.trainingJpaRepository = trainingJpaRepository;
 	}
 
 	@Transactional(rollbackFor = DatabaseException.class)
@@ -118,6 +138,43 @@ public class TraineeAdapter implements TraineeRepository {
 		} catch (Exception e) {
 			log.error("Error while trying to delete an user.", e);
 			throw new DatabaseException("Error while trying to delete an user.", e);
+		}
+	}
+
+	@Transactional(rollbackFor = DatabaseException.class)
+	@Override
+	public List<Trainer> assignTrainerBulk(TraineeTraining specification, List<String> trainerList) {
+		log.info("Assigning trainers to trainee with username: {}", specification.getUsername());
+		try {
+			List<TrainingEntity> newTrainings = new ArrayList<>();
+			List<TrainerEntity> foundTrainers = new ArrayList<>();
+			Optional<TraineeEntity> foundTrainee = traineeJpaRepository
+					.findByUserIdUsername(specification.getUsername());
+			List<TrainingEntity> trainings = trainingJpaRepository
+					.findAll(new TrainingEntitySpecification(new TrainingSpecification(specification)));
+			if (!trainings.isEmpty()) {
+				trainingJpaRepository.deleteAll(trainings);
+			}
+			trainerList.stream().forEach(trainerUsername -> {
+				Optional<TrainerEntity> trainer = trainerJpaRepository.findByUserIdUsername(trainerUsername);
+				TrainingEntity newTraining = new TrainingEntity(
+						foundTrainee.get(),
+						trainer.get(),
+						foundTrainee.get().getUserId().getFirstName().concat("+")
+							.concat(trainer.get().getSpecialization().getName())
+							.concat("+").concat(trainerUsername),
+						trainer.get().getSpecialization(),
+						LocalDate.now(),
+						1);
+				foundTrainers.add(trainer.get());
+				newTrainings.add(newTraining);
+			});
+			trainingJpaRepository.saveAll(newTrainings);
+			return foundTrainers.stream()
+					.map(TrainerEntity::toDomain).collect(Collectors.toList());
+		} catch (Exception e) {
+			log.error("Error while trying to bulk assign trainers to a trainee.", e);
+			throw new DatabaseException("Error while trying to bulk assign trainers to a trainee.", e);
 		}
 	}
 

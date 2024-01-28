@@ -18,11 +18,11 @@ import com.epam.projects.gym.domain.entity.Trainee;
 import com.epam.projects.gym.domain.entity.Trainer;
 import com.epam.projects.gym.domain.entity.Training;
 import com.epam.projects.gym.domain.entity.TrainingType;
+import com.epam.projects.gym.domain.exception.NotFoundException;
 import com.epam.projects.gym.domain.repository.TraineeRepository;
 import com.epam.projects.gym.domain.repository.TrainerRepository;
 import com.epam.projects.gym.domain.repository.TrainingRepository;
 import com.epam.projects.gym.domain.repository.TrainingTypeRepository;
-import com.epam.projects.gym.infrastructure.exception.NotFoundException;
 
 import lombok.extern.slf4j.Slf4j;
 

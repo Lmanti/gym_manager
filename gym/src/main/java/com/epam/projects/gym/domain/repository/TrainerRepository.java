@@ -15,4 +15,6 @@ public interface TrainerRepository {
 
 	public Trainer updateTrainer(Trainer trainer);
 
+	public List<Trainer> getAllNonAssociatedTrainers(String username);
+
 }

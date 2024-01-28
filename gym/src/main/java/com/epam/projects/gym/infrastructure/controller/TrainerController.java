@@ -7,11 +7,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.epam.projects.gym.application.dto.TrainerAssignedDto;
+import com.epam.projects.gym.application.dto.request.ChangeUserStatus;
 import com.epam.projects.gym.application.dto.request.TrainerRegister;
 import com.epam.projects.gym.application.dto.request.TrainerUpdate;
 import com.epam.projects.gym.application.dto.response.TrainerProfile;
@@ -75,7 +78,7 @@ public class TrainerController {
 		}
     }
 	
-	@PatchMapping
+	@PutMapping
 	@ApiOperation(value = "Updates a trainer.")
 	@ApiResponses(value = {
             @ApiResponse(code = 201, message = "Trainer updated successfully."),
@@ -88,6 +91,31 @@ public class TrainerController {
 		} else {
 			return ResponseEntity.status(400).build();
 		}
+    }
+	
+	@PatchMapping
+	@ApiOperation(value = "Activate/De-Activate a trainer")
+	@ApiResponses(value = {
+            @ApiResponse(code = 201, message = "Trainer updated successfully."),
+            @ApiResponse(code = 404, message = "Update failed, please check the info.")
+    })
+	public ResponseEntity<Void> activateDeactivateTrainee(@RequestBody ChangeUserStatus request) {
+		boolean isChanged = trainerService.changeTrainerStatus(request);
+		if (isChanged) {
+			return ResponseEntity.status(200).build();
+		} else {
+			return ResponseEntity.status(401).build();
+		}
+    }
+	
+	@GetMapping("/notAssociated")
+	@ApiOperation(value = "Gets not assigned on trainee active trainers.")
+	@ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Trainers found successfully.")
+    })
+	public ResponseEntity<List<TrainerAssignedDto>> getAllNonAssociatedTrainers(@RequestParam String username) {
+		List<TrainerAssignedDto> trainers = trainerService.getAllNonAssociatedTrainers(username);
+		return ResponseEntity.status(200).body(trainers);
     }
 	
 }

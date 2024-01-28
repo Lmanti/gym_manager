@@ -116,4 +116,19 @@ public class TrainerAdapter implements TrainerRepository {
 		}
 	}
 
+	@Override
+	public List<Trainer> getAllNonAssociatedTrainers(String username) {
+		try {
+			List<TrainerEntity> foundTrainers = trainerJpaRepository.findAllNonAssociated(username);
+			if (!foundTrainers.isEmpty()) {
+				return foundTrainers.stream().map(TrainerEntity::toDomain).collect(Collectors.toList());			
+			} else {
+				return Collections.emptyList();
+			}			
+		} catch (Exception e) {
+			log.error("Error while trying to fetch all Trainers from the database.", e);
+			throw new DatabaseException("Error while trying to fetch all Trainers from the database.", e);
+		}
+	}
+
 }
