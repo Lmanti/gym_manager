@@ -21,4 +21,6 @@ public interface TraineeRepository {
 
 	public List<Trainer> assignTrainerBulk(TraineeTraining specification, List<String> trainerList);
 
+	public Optional<Trainee> findByUsernameAndPassword(String username, String password);
+
 }

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,14 +38,17 @@ public class TraineeAdapter implements TraineeRepository {
 	
 	private TrainingJpaRepository trainingJpaRepository;
 	
+	private BCryptPasswordEncoder passwordEncoder;
+	
 	public TraineeAdapter(
 			TraineeJpaRepository traineeJpaRepository,
 			TrainerJpaRepository trainerJpaRepository,
-			TrainingJpaRepository trainingJpaRepository
-			) {
+			TrainingJpaRepository trainingJpaRepository,
+			BCryptPasswordEncoder passwordEncoder) {
 		this.traineeJpaRepository = traineeJpaRepository;
 		this.trainerJpaRepository = trainerJpaRepository;
 		this.trainingJpaRepository = trainingJpaRepository;
+		this.passwordEncoder = passwordEncoder;
 	}
 
 	@Transactional(rollbackFor = DatabaseException.class)
@@ -56,7 +60,7 @@ public class TraineeAdapter implements TraineeRepository {
 					newTrainee.getFirstName(),
 					newTrainee.getLastName(),
 					newTrainee.getUsername(),
-					newTrainee.getPassword(),
+					passwordEncoder.encode(newTrainee.getPassword()),
 					newTrainee.getIsActive());
 			
 			TraineeEntity trainee = new TraineeEntity(
@@ -117,10 +121,13 @@ public class TraineeAdapter implements TraineeRepository {
 			
 			foundTrainee.get().getUserId().setFirstName(trainee.getFirstName());
 			foundTrainee.get().getUserId().setLastName(trainee.getLastName());
-			foundTrainee.get().getUserId().setPassword(trainee.getPassword());
 			foundTrainee.get().getUserId().setIsActive(trainee.getIsActive());
 			foundTrainee.get().setAddress(trainee.getAddress());
 			foundTrainee.get().setDateOfBirth(trainee.getDateOfBirth());
+			
+			if (!passwordEncoder.matches(trainee.getPassword(), foundTrainee.get().getUserId().getPassword())) {
+				foundTrainee.get().getUserId().setPassword(passwordEncoder.encode(trainee.getPassword()));
+			}
 			
 			TraineeEntity updatedTrainee = traineeJpaRepository.save(foundTrainee.get());
 			log.debug("Trainee with ID '{}' updated successfully.", updatedTrainee.getTraineeId());
@@ -179,6 +186,25 @@ public class TraineeAdapter implements TraineeRepository {
 		} catch (Exception e) {
 			log.debug("Error while trying to bulk assign trainers to a trainee.", e);
 			throw new DatabaseException("Error while trying to bulk assign trainers to a trainee.", e);
+		}
+	}
+	
+	@Transactional(readOnly = true)
+	@Override
+	public Optional<Trainee> findByUsernameAndPassword(String username, String password) {
+		try {
+			log.debug("Validating password for trainee with username: {}.", username);
+			Optional<TraineeEntity> foundTrainee = traineeJpaRepository.findByUserIdUsername(username);
+			if (foundTrainee.isPresent() && passwordEncoder.matches(password, foundTrainee.get().getUserId().getPassword())) {
+				log.debug("Password is correct for trainee with username: {}.", username);
+				return Optional.of(foundTrainee.get().toDomain());
+			} else {
+				log.debug("Incorrect password for trainee with username: {}.", username);
+				return Optional.empty();
+			}
+		} catch (Exception e) {
+			log.debug("Error while trying to validate a password for trainee with username: " + username, e);
+			throw new DatabaseException("Error while trying to validate a password for trainee with username: " + username, e);
 		}
 	}
 

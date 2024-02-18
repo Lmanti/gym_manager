@@ -2,7 +2,13 @@ package com.epam.projects.gym.infrastructure.controller;
 
 import javax.validation.Valid;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -14,6 +20,9 @@ import com.epam.projects.gym.application.dto.request.ChangeLogin;
 import com.epam.projects.gym.application.dto.request.UserLogin;
 import com.epam.projects.gym.application.service.TraineeService;
 import com.epam.projects.gym.application.service.TrainerService;
+import com.epam.projects.gym.domain.exception.NotFoundException;
+import com.epam.projects.gym.infrastructure.service.AuthService;
+import com.epam.projects.gym.infrastructure.service.JwtService;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -29,9 +38,23 @@ public class AuthController {
 	
 	private TrainerService trainerService;
 	
-	public AuthController(TraineeService traineeService, TrainerService trainerService) {
+	private AuthService authService;
+	
+	private AuthenticationManager authenticationManager;
+	
+	private JwtService tokenManager;
+	
+	public AuthController(
+			TraineeService traineeService,
+			TrainerService trainerService,
+			AuthService authService,
+			AuthenticationManager authenticationManager,
+			JwtService tokenManager) {
 		this.traineeService = traineeService;
 		this.trainerService = trainerService;
+		this.authService = authService;
+		this.authenticationManager = authenticationManager;
+		this.tokenManager = tokenManager;
 	}
 
 	@GetMapping
@@ -40,18 +63,24 @@ public class AuthController {
             @ApiResponse(code = 200, message = "User Logged successfully."),
             @ApiResponse(code = 401, message = "Login failed, invalid credentials.")
     })
-	public ResponseEntity<Void> login(@Valid @ModelAttribute UserLogin user) {
-		boolean traineeLogin = traineeService.loginTrainee(user.getUsername(), user.getPassword());
-		if (traineeLogin) {
-			return ResponseEntity.status(200).build();
-		} else {
-			boolean trainerLogin = trainerService.loginTrainer(user.getUsername(), user.getPassword());
-			if (trainerLogin) {
-				return ResponseEntity.status(200).build();
-			} else {
-				return ResponseEntity.status(401).build();
-			}
+	public ResponseEntity<Object> login(@ModelAttribute @Valid UserLogin user) {
+		try {
+			authenticationManager.authenticate(
+					new UsernamePasswordAuthenticationToken(
+						user.getUsername(),
+						user.getPassword()
+					));
+		} catch (DisabledException exception) {
+			return ResponseEntity.status(HttpStatus.FORBIDDEN).body(exception.getMessage());
+		} catch (BadCredentialsException exception) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(exception.getMessage());
+		} catch (Exception exception) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exception.getMessage());
 		}
+		
+		final UserDetails userDetails = authService.loadUserByUsername(user.getUsername());
+		final String jwtToken = tokenManager.generateJwtToken(userDetails);
+		return ResponseEntity.status(HttpStatus.OK).header("Authorization", "Bearer " + jwtToken).body("Logged sucessfully.");
     }
 	
 	@PutMapping("/trainee")
@@ -60,13 +89,15 @@ public class AuthController {
             @ApiResponse(code = 200, message = "Trainee password changed successfully."),
             @ApiResponse(code = 401, message = "Change failed, invalid credentials.")
     })
-	public ResponseEntity<Void> changeLoginTrainee(@Valid @RequestBody ChangeLogin user) {
-		boolean isChanged = traineeService.changeTraineePassword(
-				user.getUsername(), user.getPassword(), user.getNewPassword());
-		if (isChanged) {
-			return ResponseEntity.status(200).build();
-		} else {
-			return ResponseEntity.status(401).build();
+	public ResponseEntity<Object> changeLoginTrainee(@Valid @RequestBody ChangeLogin user) {
+		try {
+			traineeService.changeTraineePassword(
+					user.getUsername(), user.getPassword(), user.getNewPassword());
+			return ResponseEntity.status(HttpStatus.OK).body("Password updated sucessfully.");
+		} catch (NotFoundException exception) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(exception.getMessage());
+		} catch (Exception exception) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exception.getMessage());
 		}
     }
 	

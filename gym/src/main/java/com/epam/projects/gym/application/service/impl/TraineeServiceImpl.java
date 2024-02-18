@@ -22,7 +22,6 @@ import com.epam.projects.gym.application.service.TraineeService;
 import com.epam.projects.gym.domain.entity.Trainee;
 import com.epam.projects.gym.domain.exception.CreationException;
 import com.epam.projects.gym.domain.exception.NotFoundException;
-import com.epam.projects.gym.domain.exception.NotMatchException;
 import com.epam.projects.gym.domain.exception.UpdateException;
 import com.epam.projects.gym.domain.repository.TraineeRepository;
 import com.epam.projects.gym.domain.repository.TrainerRepository;
@@ -87,12 +86,13 @@ public class TraineeServiceImpl implements TraineeService {
 						Randomizer.createUsername(trainee.getFirstName(), trainee.getLastName())
 						+ Randomizer.getSerialNumber()));
 		} else {
+			String newPassword = Randomizer.createPasword(trainee.getFirstName(), trainee.getLastName());
 			log.info("Creating new trainee: {}.", trainee);
 			Trainee newTrainee = new Trainee(
 					trainee.getFirstName(),
 					trainee.getLastName(),
 					randomUsername,
-					Randomizer.createPasword(trainee.getFirstName(), trainee.getLastName()),
+					newPassword,
 					true,
 					trainee.getDateOfBirth(),
 					trainee.getAddress());
@@ -104,7 +104,7 @@ public class TraineeServiceImpl implements TraineeService {
 				
 				UserCreated response = new UserCreated();
 				response.setUsername(createdTrainee.get().getUsername());
-				response.setPassword(createdTrainee.get().getPassword());
+				response.setPassword(newPassword);
 				
 				return Optional.of(response);
 			} else {
@@ -188,24 +188,18 @@ public class TraineeServiceImpl implements TraineeService {
 
 	@Override
 	public boolean changeTraineePassword(String username, String oldPasword, String newPasword) {
-		try {
-			Optional<Trainee> foundTrainee = traineeRepository.findByUsername(username);
-			if (foundTrainee.isPresent()) {
-				Trainee trainee = foundTrainee.get();
-				
-				if (trainee.getPassword().equals(oldPasword)) {
-					trainee.setPassword(newPasword);
-					traineeRepository.updateTrainee(trainee);
-					return true;					
-				} else {
-					throw new NotMatchException("Invalid Password.");
-				}				
-			} else {
-				throw new NotFoundException("Couldn't find a trainee with username: " + username);
-			}
-		} catch (Exception e) {
-			log.error(e.getMessage());
-			return false;
+		log.info("Trying to update password for trainee with username: {}", username);
+		Optional<Trainee> foundTrainee = traineeRepository.findByUsernameAndPassword(username, oldPasword);
+		if (foundTrainee.isPresent()) {
+			log.info("Matched. Updating password for trainee with username: {}", username);
+			Trainee trainee = foundTrainee.get();
+			trainee.setPassword(newPasword);
+			traineeRepository.updateTrainee(trainee);
+			log.info("Password updated succesfully.");
+			return true;				
+		} else {
+			log.error("Invalid credentials, incorrect username or password.");
+			throw new NotFoundException("Invalid credentials, incorrect username or password.");
 		}
 	}
 
