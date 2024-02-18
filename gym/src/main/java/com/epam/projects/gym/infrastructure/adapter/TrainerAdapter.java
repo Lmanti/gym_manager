@@ -35,6 +35,7 @@ public class TrainerAdapter implements TrainerRepository {
 		this.trainingTypeJpaRepository = trainingTypeJpaRepository;
 	}
 	
+	@Transactional(readOnly = true)
 	@Override
 	public List<Trainer> getAllTrainers() {
 		try {
@@ -50,6 +51,7 @@ public class TrainerAdapter implements TrainerRepository {
 		}
 	}
 
+	@Transactional(readOnly = true)
 	@Override
 	public Optional<Trainer> findByUsername(String username) {
 		try {
@@ -116,6 +118,7 @@ public class TrainerAdapter implements TrainerRepository {
 		}
 	}
 
+	@Transactional(readOnly = true)
 	@Override
 	public List<Trainer> getAllNonAssociatedTrainers(String username) {
 		try {

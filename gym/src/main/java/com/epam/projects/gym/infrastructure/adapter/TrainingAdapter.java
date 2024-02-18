@@ -74,6 +74,7 @@ public class TrainingAdapter implements TrainingRepository {
 		}
 	}
 
+	@Transactional(readOnly = true)
 	@Override
 	public List<Training> findBySpecification(TrainingSpecification specification) {
 		try {

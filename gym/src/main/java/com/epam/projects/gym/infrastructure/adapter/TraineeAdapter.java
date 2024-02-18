@@ -49,8 +49,8 @@ public class TraineeAdapter implements TraineeRepository {
 
 	@Transactional(rollbackFor = DatabaseException.class)
 	@Override
-	public Trainee createTrainee(Trainee newTrainee) {
-		log.info("Creating trainee: {}", newTrainee);
+	public Optional<Trainee> createTrainee(Trainee newTrainee) {
+		log.debug("Creating trainee: {}", newTrainee);
 		try {
 			UserEntity newUser = new UserEntity(
 					newTrainee.getFirstName(),
@@ -67,17 +67,19 @@ public class TraineeAdapter implements TraineeRepository {
 			newUser.setTraineeId(trainee);
 			
 			TraineeEntity createdTrainee = traineeJpaRepository.save(trainee);
-			log.info("Trainee created successfully with ID: {}", createdTrainee.getTraineeId());
-			return createdTrainee.toDomain();
+			log.debug("Trainee created successfully with ID: {}", createdTrainee.getTraineeId());
+			return Optional.of(createdTrainee.toDomain());
 		} catch (Exception e) {
-			log.error("Error while trying to register a Trainee.", e);
+			log.debug("Error while trying to register a Trainee.", e);
 			throw new DatabaseException("Error while trying to register a Trainee.", e);
 		}
 	}
 
+	@Transactional(readOnly = true)
 	@Override
 	public List<Trainee> getAllTrainees() {
 		try {
+			log.debug("Trying to fetch all Trainees.");
 			List<TraineeEntity> foundTrainees = traineeJpaRepository.findAll();
 			if (!foundTrainees.isEmpty()) {
 				return foundTrainees.stream().map(TraineeEntity::toDomain).collect(Collectors.toList());			
@@ -85,28 +87,30 @@ public class TraineeAdapter implements TraineeRepository {
 				return Collections.emptyList();
 			}			
 		} catch (Exception e) {
-			log.error("Error while trying to fetch all Trainees from the database.", e);
+			log.debug("Error while trying to fetch all Trainees from the database.", e);
 			throw new DatabaseException("Error while trying to fetch all Trainees from the database.", e);
 		}
 	}
 
+	@Transactional(readOnly = true)
 	@Override
 	public Optional<Trainee> findByUsername(String username) {
 		try {
+			log.debug("Looking for trainee with username: {}.", username);
 			Optional<TraineeEntity> foundTrainee = traineeJpaRepository.findByUserIdUsername(username);
 			return foundTrainee.isPresent()
 					? Optional.of(foundTrainee.get().toDomain())
 					: Optional.empty();
 		} catch (Exception e) {
-			log.error("Error while trying to fetch by username an users from the database.", e);
+			log.debug("Error while trying to fetch by username an users from the database.", e);
 			throw new DatabaseException("Error while trying to fetch by username an users from the database.", e);
 		}
 	}
 
 	@Transactional(rollbackFor = DatabaseException.class)
 	@Override
-	public Trainee updateTrainee(Trainee trainee) {
-		log.info("Updating trainee: {}", trainee);
+	public Optional<Trainee> updateTrainee(Trainee trainee) {
+		log.debug("Updating trainee: {}", trainee);
 		try {
 			Optional<TraineeEntity> foundTrainee = traineeJpaRepository
 					.findByUserIdUsername(trainee.getUsername());
@@ -119,10 +123,10 @@ public class TraineeAdapter implements TraineeRepository {
 			foundTrainee.get().setDateOfBirth(trainee.getDateOfBirth());
 			
 			TraineeEntity updatedTrainee = traineeJpaRepository.save(foundTrainee.get());
-			log.info("Trainee with ID '{}' updated successfully.", updatedTrainee.getTraineeId());
-			return updatedTrainee.toDomain();
+			log.debug("Trainee with ID '{}' updated successfully.", updatedTrainee.getTraineeId());
+			return Optional.of(updatedTrainee.toDomain());
 		} catch (Exception e) {
-			log.error("Error while trying to update a Trainee.", e);
+			log.debug("Error while trying to update a Trainee.", e);
 			throw new DatabaseException("Error while trying to update a Trainee.", e);
 		}
 	}
@@ -130,13 +134,13 @@ public class TraineeAdapter implements TraineeRepository {
 	@Transactional(rollbackFor = DatabaseException.class)
 	@Override
 	public boolean deleteTrainee(String username) {
-		log.info("Deleting trainee with username: {}", username);
+		log.debug("Deleting trainee with username: {}", username);
 		try {
 			traineeJpaRepository.deleteByUserIdUsername(username);
-			log.info("Trainee with username '{}' deleted succesfully.", username);
+			log.debug("Trainee with username '{}' deleted succesfully.", username);
 			return true;
 		} catch (Exception e) {
-			log.error("Error while trying to delete an user.", e);
+			log.debug("Error while trying to delete an user.", e);
 			throw new DatabaseException("Error while trying to delete an user.", e);
 		}
 	}
@@ -144,7 +148,7 @@ public class TraineeAdapter implements TraineeRepository {
 	@Transactional(rollbackFor = DatabaseException.class)
 	@Override
 	public List<Trainer> assignTrainerBulk(TraineeTraining specification, List<String> trainerList) {
-		log.info("Assigning trainers to trainee with username: {}", specification.getUsername());
+		log.debug("Assigning trainers to trainee with username: {}", specification.getUsername());
 		try {
 			List<TrainingEntity> newTrainings = new ArrayList<>();
 			List<TrainerEntity> foundTrainers = new ArrayList<>();
@@ -173,7 +177,7 @@ public class TraineeAdapter implements TraineeRepository {
 			return foundTrainers.stream()
 					.map(TrainerEntity::toDomain).collect(Collectors.toList());
 		} catch (Exception e) {
-			log.error("Error while trying to bulk assign trainers to a trainee.", e);
+			log.debug("Error while trying to bulk assign trainers to a trainee.", e);
 			throw new DatabaseException("Error while trying to bulk assign trainers to a trainee.", e);
 		}
 	}

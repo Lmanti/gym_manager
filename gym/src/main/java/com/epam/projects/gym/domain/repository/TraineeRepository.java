@@ -9,13 +9,13 @@ import com.epam.projects.gym.domain.entity.Trainer;
 
 public interface TraineeRepository {
 
-	public Trainee createTrainee(Trainee newTrainee);
+	public Optional<Trainee> createTrainee(Trainee newTrainee);
 	
 	public List<Trainee> getAllTrainees();
 
 	public Optional<Trainee> findByUsername(String username);
 
-	public Trainee updateTrainee(Trainee trainee);
+	public Optional<Trainee> updateTrainee(Trainee trainee);
 
 	public boolean deleteTrainee(String username);
 

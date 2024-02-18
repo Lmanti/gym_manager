@@ -3,6 +3,8 @@ package com.epam.projects.gym.infrastructure.controller;
 import java.util.List;
 import java.util.Optional;
 
+import javax.validation.Valid;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -54,7 +56,7 @@ public class TrainerController {
             @ApiResponse(code = 201, message = "Trainer registered successfully."),
             @ApiResponse(code = 400, message = "Register failed, please check the info.")
     })
-	public ResponseEntity<UserCreated> createTrainer(@RequestBody TrainerRegister trainer) {
+	public ResponseEntity<UserCreated> createTrainer(@Valid @RequestBody TrainerRegister trainer) {
 		Optional<UserCreated> newTrainer = trainerService.createTrainer(trainer);
 		if (newTrainer.isPresent()) {
 			return ResponseEntity.status(201).body(newTrainer.get());			
@@ -84,7 +86,7 @@ public class TrainerController {
             @ApiResponse(code = 201, message = "Trainer updated successfully."),
             @ApiResponse(code = 400, message = "Update failed, please check the info.")
     })
-	public ResponseEntity<TrainerUpdated> updateTrainee(@RequestBody TrainerUpdate trainee) {
+	public ResponseEntity<TrainerUpdated> updateTrainee(@Valid @RequestBody TrainerUpdate trainee) {
 		Optional<TrainerUpdated> updated = trainerService.updateTrainer(trainee);
 		if (updated.isPresent()) {
 			return ResponseEntity.status(201).body(updated.get());	
@@ -99,7 +101,7 @@ public class TrainerController {
             @ApiResponse(code = 201, message = "Trainer updated successfully."),
             @ApiResponse(code = 404, message = "Update failed, please check the info.")
     })
-	public ResponseEntity<Void> activateDeactivateTrainee(@RequestBody ChangeUserStatus request) {
+	public ResponseEntity<Void> activateDeactivateTrainee(@Valid @RequestBody ChangeUserStatus request) {
 		boolean isChanged = trainerService.changeTrainerStatus(request);
 		if (isChanged) {
 			return ResponseEntity.status(200).build();

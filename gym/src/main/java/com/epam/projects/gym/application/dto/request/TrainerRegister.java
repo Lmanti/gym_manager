@@ -1,6 +1,8 @@
 package com.epam.projects.gym.application.dto.request;
 
-import com.epam.projects.gym.application.enums.Specialization;
+import javax.validation.constraints.NotBlank;
+
+import com.epam.projects.gym.domain.enums.Specialization;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import io.swagger.annotations.ApiModel;
@@ -13,6 +15,7 @@ import lombok.Setter;
 @Setter
 public class TrainerRegister extends UserRegister {
 
+	@NotBlank
 	@ApiModelProperty(
             value = "Trainer's Specialization",
             allowableValues = "Fitness, Yoga, Zumba, Stretching, Resistance"

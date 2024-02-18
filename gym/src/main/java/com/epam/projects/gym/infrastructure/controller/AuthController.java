@@ -1,5 +1,7 @@
 package com.epam.projects.gym.infrastructure.controller;
 
+import javax.validation.Valid;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -38,7 +40,7 @@ public class AuthController {
             @ApiResponse(code = 200, message = "User Logged successfully."),
             @ApiResponse(code = 401, message = "Login failed, invalid credentials.")
     })
-	public ResponseEntity<Void> login(@ModelAttribute UserLogin user) {
+	public ResponseEntity<Void> login(@Valid @ModelAttribute UserLogin user) {
 		boolean traineeLogin = traineeService.loginTrainee(user.getUsername(), user.getPassword());
 		if (traineeLogin) {
 			return ResponseEntity.status(200).build();
@@ -58,7 +60,7 @@ public class AuthController {
             @ApiResponse(code = 200, message = "Trainee password changed successfully."),
             @ApiResponse(code = 401, message = "Change failed, invalid credentials.")
     })
-	public ResponseEntity<Void> changeLoginTrainee(@RequestBody ChangeLogin user) {
+	public ResponseEntity<Void> changeLoginTrainee(@Valid @RequestBody ChangeLogin user) {
 		boolean isChanged = traineeService.changeTraineePassword(
 				user.getUsername(), user.getPassword(), user.getNewPassword());
 		if (isChanged) {
@@ -74,7 +76,7 @@ public class AuthController {
             @ApiResponse(code = 200, message = "Trainer password changed successfully."),
             @ApiResponse(code = 401, message = "Change failed, invalid credentials.")
     })
-	public ResponseEntity<Void> changeLoginTrainer(@RequestBody ChangeLogin user) {
+	public ResponseEntity<Void> changeLoginTrainer(@Valid @RequestBody ChangeLogin user) {
 		boolean isChanged = trainerService.changeTrainerPassword(
 				user.getUsername(), user.getPassword(), user.getNewPassword());
 		if (isChanged) {

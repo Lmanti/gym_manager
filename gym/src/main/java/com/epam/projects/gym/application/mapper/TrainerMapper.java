@@ -5,8 +5,8 @@ import java.util.stream.Collectors;
 import com.epam.projects.gym.application.dto.TrainerAssignedDto;
 import com.epam.projects.gym.application.dto.response.TrainerProfile;
 import com.epam.projects.gym.application.dto.response.TrainerUpdated;
-import com.epam.projects.gym.application.enums.Specialization;
 import com.epam.projects.gym.domain.entity.Trainer;
+import com.epam.projects.gym.domain.enums.Specialization;
 
 public class TrainerMapper {
 

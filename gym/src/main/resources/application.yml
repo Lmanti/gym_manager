@@ -1,12 +1,7 @@
-data:
-  file:
-    path: bd.json
-
 spring:
+  profiles:
+    active: test
   datasource:
-    url: jdbc:postgresql://drona.db.elephantsql.com/flkrewxq
-    username: flkrewxq
-    password: 1PSFouUubB85Xf6beNhqbCNabF0k3OKw
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -17,3 +12,20 @@ spring:
       ddl-auto: update
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     generate-ddl: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: 'health,prometheus,metrics'
+  endpoint:
+    health:
+      group:
+        custom:
+          include: diskSpace,ping
+          show-components: always
+          show-details: always
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
