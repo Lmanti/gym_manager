@@ -15,19 +15,18 @@ import org.springframework.stereotype.Service;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
 
 @Service
 public class JwtService implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	
-	private static final String SECRET_KEY = "testing012345678910testingdasdasdasdasdadsasdasd109874563210";
+	private static final String SECRET_KEY = "testing012345678910testingdasda1891651847dsasdasd109874563210pmvoba191519cqhoqhcq195211q64dffaf964f";
     private static final long EXPIRATION_TIME = 864_000_000;
+    private final Key key = new SecretKeySpec(Base64.getEncoder().encode(SECRET_KEY.getBytes()), SignatureAlgorithm.HS512.getJcaName());
     
     public String generateJwtToken(UserDetails userDetails) { 
         Map<String, Object> claims = new HashMap<>();
-        Key key = new SecretKeySpec(Base64.getEncoder().encode(SECRET_KEY.getBytes()), SignatureAlgorithm.HS512.getJcaName());
         
         return Jwts.builder().setClaims(claims).setSubject(userDetails.getUsername()) 
            .setIssuedAt(new Date(System.currentTimeMillis())) 
@@ -37,7 +36,7 @@ public class JwtService implements Serializable {
     
     public String getUsernameFromToken(String token) {
         final Claims claims = Jwts.parserBuilder()
-        		.setSigningKey(Keys.hmacShaKeyFor(SECRET_KEY.getBytes()))
+        		.setSigningKey(key)
         		.build()
         		.parseClaimsJws(token)
         		.getBody();
@@ -47,7 +46,7 @@ public class JwtService implements Serializable {
     public Boolean validateJwtToken(String token, UserDetails userDetails) { 
         String username = getUsernameFromToken(token); 
         Claims claims = Jwts.parserBuilder()
-        		.setSigningKey(Keys.hmacShaKeyFor(SECRET_KEY.getBytes()))
+        		.setSigningKey(key)
         		.build()
         		.parseClaimsJws(token)
         		.getBody();

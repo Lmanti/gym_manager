@@ -107,13 +107,15 @@ public class AuthController {
             @ApiResponse(code = 200, message = "Trainer password changed successfully."),
             @ApiResponse(code = 401, message = "Change failed, invalid credentials.")
     })
-	public ResponseEntity<Void> changeLoginTrainer(@Valid @RequestBody ChangeLogin user) {
-		boolean isChanged = trainerService.changeTrainerPassword(
-				user.getUsername(), user.getPassword(), user.getNewPassword());
-		if (isChanged) {
-			return ResponseEntity.status(200).build();
-		} else {
-			return ResponseEntity.status(401).build();
+	public ResponseEntity<Object> changeLoginTrainer(@RequestBody @Valid ChangeLogin user) {
+		try {
+			trainerService.changeTrainerPassword(
+					user.getUsername(), user.getPassword(), user.getNewPassword());
+			return ResponseEntity.status(HttpStatus.OK).body("Password updated sucessfully.");
+		} catch (NotFoundException exception) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(exception.getMessage());
+		} catch (Exception exception) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exception.getMessage());
 		}
     }
 

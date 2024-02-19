@@ -11,10 +11,12 @@ public interface TrainerRepository {
 
 	public Optional<Trainer> findByUsername(String username);
 
-	public Trainer createTrainer(Trainer newTrainer);
+	public Optional<Trainer> createTrainer(Trainer newTrainer);
 
-	public Trainer updateTrainer(Trainer trainer);
+	public Optional<Trainer> updateTrainer(Trainer trainer);
 
 	public List<Trainer> getAllNonAssociatedTrainers(String username);
+
+	public Optional<Trainer> findByUsernameAndPassword(String username, String password);
 
 }

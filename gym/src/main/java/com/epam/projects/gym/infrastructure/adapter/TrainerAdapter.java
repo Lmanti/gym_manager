@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,12 +28,16 @@ public class TrainerAdapter implements TrainerRepository {
 	
 	private TrainingTypeJpaRepository trainingTypeJpaRepository;
 	
+	private BCryptPasswordEncoder passwordEncoder;
+	
 	public TrainerAdapter(
 			TrainerJpaRepository trainerJpaRepository,
-			TrainingTypeJpaRepository trainingTypeJpaRepository
+			TrainingTypeJpaRepository trainingTypeJpaRepository,
+			BCryptPasswordEncoder passwordEncoder
 			) {
 		this.trainerJpaRepository = trainerJpaRepository;
 		this.trainingTypeJpaRepository = trainingTypeJpaRepository;
+		this.passwordEncoder = passwordEncoder;
 	}
 	
 	@Transactional(readOnly = true)
@@ -46,7 +51,7 @@ public class TrainerAdapter implements TrainerRepository {
 				return Collections.emptyList();
 			}			
 		} catch (Exception e) {
-			log.error("Error while trying to fetch all Trainers from the database.", e);
+			log.debug("Error while trying to fetch all Trainers from the database.", e);
 			throw new DatabaseException("Error while trying to fetch all Trainers from the database.", e);
 		}
 	}
@@ -62,15 +67,15 @@ public class TrainerAdapter implements TrainerRepository {
 				return Optional.empty();
 			}
 		} catch (Exception e) {
-			log.error("Error while trying to fetch by username a Trainer from the database.", e);
+			log.debug("Error while trying to fetch by username a Trainer from the database.", e);
 			throw new DatabaseException("Error while trying to fetch by username a Trainer from the database.", e);
 		}
 	}
 
 	@Transactional(rollbackFor = DatabaseException.class)
 	@Override
-	public Trainer createTrainer(Trainer newTrainer) {
-		log.info("Creating trainer: {}", newTrainer);
+	public Optional<Trainer> createTrainer(Trainer newTrainer) {
+		log.debug("Creating trainer: {}", newTrainer);
 		try {
 			Optional<TrainingTypeEntity> trainingType = trainingTypeJpaRepository.findById(newTrainer.getSpecialization().getId());
 			
@@ -78,7 +83,7 @@ public class TrainerAdapter implements TrainerRepository {
 					newTrainer.getFirstName(),
 					newTrainer.getLastName(),
 					newTrainer.getUsername(),
-					newTrainer.getPassword(),
+					passwordEncoder.encode(newTrainer.getPassword()),
 					newTrainer.getIsActive());
 			
 			TrainerEntity trainer = new TrainerEntity(
@@ -88,32 +93,35 @@ public class TrainerAdapter implements TrainerRepository {
 			newUser.setTrainerId(trainer);
 			
 			TrainerEntity createdTrainer = trainerJpaRepository.save(trainer);
-			log.info("Trainer created successfully with ID: {}", createdTrainer.getTrainerId());
-			return createdTrainer.toDomain();
+			log.debug("Trainer created successfully with ID: {}", createdTrainer.getTrainerId());
+			return Optional.of(createdTrainer.toDomain());
 		} catch (Exception e) {
-			log.error("Error while trying to register a Trainer.", e);
+			log.debug("Error while trying to register a Trainer.", e);
 			throw new DatabaseException("Error while trying to register a Trainer.", e);
 		}
 	}
 
 	@Transactional(rollbackFor = DatabaseException.class)
 	@Override
-	public Trainer updateTrainer(Trainer trainer) {
-		log.info("Updating trainer: {}", trainer);
+	public Optional<Trainer> updateTrainer(Trainer trainer) {
+		log.debug("Updating trainer: {}", trainer);
 		try {
 			Optional<TrainerEntity> foundTrainer = trainerJpaRepository
 					.findByUserIdUsername(trainer.getUsername());
 			
 			foundTrainer.get().getUserId().setFirstName(trainer.getFirstName());
 			foundTrainer.get().getUserId().setLastName(trainer.getLastName());
-			foundTrainer.get().getUserId().setPassword(trainer.getPassword());
 			foundTrainer.get().getUserId().setIsActive(trainer.getIsActive());
 			
+			if (!passwordEncoder.matches(trainer.getPassword(), foundTrainer.get().getUserId().getPassword())) {
+				foundTrainer.get().getUserId().setPassword(passwordEncoder.encode(trainer.getPassword()));
+			}
+			
 			TrainerEntity updatedTrainer = trainerJpaRepository.save(foundTrainer.get());
-			log.info("Trainer with ID '{}' updated successfully.", updatedTrainer.getTrainerId());
-			return updatedTrainer.toDomain();
+			log.debug("Trainer with ID '{}' updated successfully.", updatedTrainer.getTrainerId());
+			return Optional.of(updatedTrainer.toDomain());
 		} catch (Exception e) {
-			log.error("Error while trying to update a Trainer.", e);
+			log.debug("Error while trying to update a Trainer.", e);
 			throw new DatabaseException("Error while trying to update a Trainer.", e);
 		}
 	}
@@ -129,8 +137,27 @@ public class TrainerAdapter implements TrainerRepository {
 				return Collections.emptyList();
 			}			
 		} catch (Exception e) {
-			log.error("Error while trying to fetch all Trainers from the database.", e);
+			log.debug("Error while trying to fetch all Trainers from the database.", e);
 			throw new DatabaseException("Error while trying to fetch all Trainers from the database.", e);
+		}
+	}
+	
+	@Transactional(readOnly = true)
+	@Override
+	public Optional<Trainer> findByUsernameAndPassword(String username, String password) {
+		try {
+			log.debug("Validating password for trainer with username: {}.", username);
+			Optional<TrainerEntity> foundTrainer = trainerJpaRepository.findByUserIdUsername(username);
+			if (foundTrainer.isPresent() && passwordEncoder.matches(password, foundTrainer.get().getUserId().getPassword())) {
+				log.debug("Password is correct for trainer with username: {}.", username);
+				return Optional.of(foundTrainer.get().toDomain());
+			} else {
+				log.debug("Incorrect password for trainer with username: {}.", username);
+				return Optional.empty();
+			}
+		} catch (Exception e) {
+			log.debug("Error while trying to validate a password for trainer with username: " + username, e);
+			throw new DatabaseException("Error while trying to validate a password for trainer with username: " + username, e);
 		}
 	}
 

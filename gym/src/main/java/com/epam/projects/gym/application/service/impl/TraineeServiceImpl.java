@@ -1,6 +1,5 @@
 package com.epam.projects.gym.application.service.impl;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -162,29 +161,6 @@ public class TraineeServiceImpl implements TraineeService {
 			throw new NotFoundException("Couldn't find a trainee with username: " + username);
 		}
 	}
-	
-	@Override
-	public boolean loginTrainee(String username, String password) {
-		try {
-			log.info("Trying to log in trainee with username: {}", username);
-			Optional<Trainee> foundTrainee = traineeRepository.findByUsername(username);
-			if (foundTrainee.isPresent()) {
-				boolean validation = foundTrainee.get().getPassword().equals(password);
-				
-				if (validation) {
-					log.info("Trainee with username {} logged successfully.", username);
-				} else {
-					log.info("Incorrect Password for username: {}", username);
-				}				
-				return validation;
-			} else {
-				throw new NotFoundException("Couldn't find a trainee with username: " + username);
-			}
-		} catch (Exception e) {
-			log.error(e.getMessage());
-			return false;
-		}
-	}
 
 	@Override
 	public boolean changeTraineePassword(String username, String oldPasword, String newPasword) {
@@ -205,29 +181,25 @@ public class TraineeServiceImpl implements TraineeService {
 
 	@Override
 	public List<TrainerAssignedDto> updateTrainerList(UpdateTrainerList newData) {
-		try {
-			log.info("Updating trainee's trainer list for trainee with username: {}", newData.getUsername());
-			Optional<Trainee> foundTrainee = traineeRepository.findByUsername(newData.getUsername());
-			if (foundTrainee.isPresent()) {
-				newData.getTrainerList().stream().forEach(trainerUsername -> {
-					log.info("Validating if trainer with username {} exist.", trainerUsername);
-					if (!trainerRepository.findByUsername(trainerUsername).isPresent()) {
-						throw new NotFoundException("Couldn't find a trainee with username: " + trainerUsername);
-					}
-				});
-				TraineeTraining specification = new TraineeTraining();
-				specification.setUsername(newData.getUsername());
-				log.info("Assigning trainers to trainee's list.");
-				return traineeRepository.assignTrainerBulk(specification, newData.getTrainerList())
-						.stream()
-						.map(TrainerMapper::toAssignedDto)
-						.collect(Collectors.toList());
-			} else {
-				throw new NotFoundException("Couldn't find a trainee with username: " + newData.getUsername());
-			}
-		} catch (Exception e) {
-			log.error(e.getMessage());
-			return Collections.emptyList();
+		log.info("Updating trainee's trainer list for trainee with username: {}", newData.getUsername());
+		Optional<Trainee> foundTrainee = traineeRepository.findByUsername(newData.getUsername());
+		if (foundTrainee.isPresent()) {
+			newData.getTrainerList().stream().forEach(trainerUsername -> {
+				log.info("Validating if trainer with username {} exist.", trainerUsername);
+				if (!trainerRepository.findByUsername(trainerUsername).isPresent()) {
+					throw new NotFoundException("Couldn't find a trainer with username: " + trainerUsername);
+				}
+			});
+			TraineeTraining specification = new TraineeTraining();
+			specification.setUsername(newData.getUsername());
+			log.info("Assigning trainers to trainee's list.");
+			return traineeRepository.assignTrainerBulk(specification, newData.getTrainerList())
+					.stream()
+					.map(TrainerMapper::toAssignedDto)
+					.collect(Collectors.toList());
+		} else {
+			log.error("Couldn't find a trainee with username: ", newData.getUsername());
+			throw new NotFoundException("Couldn't find a trainee with username: " + newData.getUsername());
 		}
 	}
 

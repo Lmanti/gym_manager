@@ -127,11 +127,17 @@ public class TraineeController {
 	@PutMapping("/trainerList")
 	@ApiOperation(value = "Updates a trainee's trainer list.")
 	@ApiResponses(value = {
-            @ApiResponse(code = 201, message = "Trainee's list updated successfully.")
+            @ApiResponse(code = 200, message = "Trainee's list updated successfully.")
     })
-	public ResponseEntity<List<TrainerAssignedDto>> updateTraineeTrainerList(@Valid @RequestBody UpdateTrainerList newData) {
-		List<TrainerAssignedDto> updatedData = traineeService.updateTrainerList(newData);
-		return ResponseEntity.status(200).body(updatedData);
+	public ResponseEntity<Object> updateTraineeTrainerList(@Valid @RequestBody UpdateTrainerList newData) {
+		try {
+			List<TrainerAssignedDto> updatedData = traineeService.updateTrainerList(newData);
+			return ResponseEntity.status(HttpStatus.OK).body(updatedData);
+		} catch (NotFoundException exception) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
+		} catch (Exception exception) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exception.getMessage());
+		}
     }
 	
 	@DeleteMapping("/{username}")

@@ -26,8 +26,6 @@ public interface TraineeService {
 
 	public boolean changeTraineePassword(String username, String oldPassword, String newPassword);
 
-	public boolean loginTrainee(String username, String password);
-
 	public List<TrainerAssignedDto> updateTrainerList(UpdateTrainerList newData);
 
 	public boolean changeTraineeStatus(ChangeUserStatus request);

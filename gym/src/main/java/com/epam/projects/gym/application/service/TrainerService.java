@@ -23,8 +23,6 @@ public interface TrainerService {
 	
 	public boolean changeTrainerPassword(String username, String oldPassword, String newPassword);
 
-	public boolean loginTrainer(String username, String password);
-
 	public List<TrainerAssignedDto> getAllNonAssociatedTrainers(String username);
 
 	public boolean changeTrainerStatus(ChangeUserStatus request);

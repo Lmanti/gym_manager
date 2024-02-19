@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import javax.validation.Valid;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -23,6 +24,9 @@ import com.epam.projects.gym.application.dto.response.TrainerProfile;
 import com.epam.projects.gym.application.dto.response.TrainerUpdated;
 import com.epam.projects.gym.application.dto.response.UserCreated;
 import com.epam.projects.gym.application.service.TrainerService;
+import com.epam.projects.gym.domain.exception.CreationException;
+import com.epam.projects.gym.domain.exception.NotFoundException;
+import com.epam.projects.gym.domain.exception.UpdateException;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -56,12 +60,14 @@ public class TrainerController {
             @ApiResponse(code = 201, message = "Trainer registered successfully."),
             @ApiResponse(code = 400, message = "Register failed, please check the info.")
     })
-	public ResponseEntity<UserCreated> createTrainer(@Valid @RequestBody TrainerRegister trainer) {
-		Optional<UserCreated> newTrainer = trainerService.createTrainer(trainer);
-		if (newTrainer.isPresent()) {
-			return ResponseEntity.status(201).body(newTrainer.get());			
-		} else {
-			return ResponseEntity.status(400).build();
+	public ResponseEntity<Object> createTrainer(@Valid @RequestBody TrainerRegister trainer) {
+		try {
+			Optional<UserCreated> newTrainer = trainerService.createTrainer(trainer);
+			return ResponseEntity.status(HttpStatus.CREATED).body(newTrainer.get());
+		} catch (CreationException exception) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exception.getMessage());
+		} catch (Exception exception) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exception.getMessage());
 		}
     }
 	
@@ -71,27 +77,31 @@ public class TrainerController {
             @ApiResponse(code = 200, message = "Trainer found successfully."),
             @ApiResponse(code = 404, message = "No trainer can be found.")
     })
-	public ResponseEntity<TrainerProfile> getTrainerByUsername(@RequestParam String username) {
-		Optional<TrainerProfile> trainer = trainerService.getTrainerByUsername(username);
-		if (trainer.isPresent()) {
-			return ResponseEntity.status(200).body(trainer.get());			
-		} else {
-			return ResponseEntity.status(404).build();
+	public ResponseEntity<Object> getTrainerByUsername(@RequestParam String username) {
+		try {
+			Optional<TrainerProfile> trainee = trainerService.getTrainerByUsername(username);
+			return ResponseEntity.status(HttpStatus.OK).body(trainee.get());
+		} catch (NotFoundException exception) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
+		} catch (Exception exception) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exception.getMessage());
 		}
     }
 	
 	@PutMapping
 	@ApiOperation(value = "Updates a trainer.")
 	@ApiResponses(value = {
-            @ApiResponse(code = 201, message = "Trainer updated successfully."),
+            @ApiResponse(code = 200, message = "Trainer updated successfully."),
             @ApiResponse(code = 400, message = "Update failed, please check the info.")
     })
-	public ResponseEntity<TrainerUpdated> updateTrainee(@Valid @RequestBody TrainerUpdate trainee) {
-		Optional<TrainerUpdated> updated = trainerService.updateTrainer(trainee);
-		if (updated.isPresent()) {
-			return ResponseEntity.status(201).body(updated.get());	
-		} else {
-			return ResponseEntity.status(400).build();
+	public ResponseEntity<Object> updateTrainee(@Valid @RequestBody TrainerUpdate trainer) {
+		try {
+			Optional<TrainerUpdated> updated = trainerService.updateTrainer(trainer);
+			return ResponseEntity.status(HttpStatus.OK).body(updated.get());
+		} catch (UpdateException exception) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exception.getMessage());
+		} catch (Exception exception) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exception.getMessage());
 		}
     }
 	
@@ -101,12 +111,14 @@ public class TrainerController {
             @ApiResponse(code = 201, message = "Trainer updated successfully."),
             @ApiResponse(code = 404, message = "Update failed, please check the info.")
     })
-	public ResponseEntity<Void> activateDeactivateTrainee(@Valid @RequestBody ChangeUserStatus request) {
-		boolean isChanged = trainerService.changeTrainerStatus(request);
-		if (isChanged) {
-			return ResponseEntity.status(200).build();
-		} else {
-			return ResponseEntity.status(401).build();
+	public ResponseEntity<Object> activateDeactivateTrainee(@Valid @RequestBody ChangeUserStatus request) {
+		try {
+			trainerService.changeTrainerStatus(request);
+			return ResponseEntity.status(HttpStatus.OK).build();
+		} catch (NotFoundException exception) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
+		} catch (Exception exception) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exception.getMessage());
 		}
     }
 	

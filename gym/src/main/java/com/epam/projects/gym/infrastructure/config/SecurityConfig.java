@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -25,7 +26,7 @@ import com.epam.projects.gym.infrastructure.service.AuthService;
 public class SecurityConfig {
 	
 	@Autowired
-	private AuthService userDetailsService;
+	private UserDetailsService userDetailsService;
 	
 	@Autowired
 	private JwtAuthenticationEntryPoint authenticationEntryPoint;
@@ -57,19 +58,19 @@ public class SecurityConfig {
                 .sessionManagement(management -> management
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(requests -> requests
-                        .antMatchers(HttpMethod.GET, "/api/trainees/**").hasAnyRole("TRAINEE")
-                        .antMatchers(HttpMethod.PUT, "/api/trainees/**").hasAnyRole("TRAINEE")
-                        .antMatchers(HttpMethod.PATCH, "/api/trainees").hasAnyRole("TRAINEE")
-                        .antMatchers(HttpMethod.DELETE, "/api/trainees/**").hasAnyRole("TRAINEE")
+                        .antMatchers(HttpMethod.GET, "/api/trainees/**").hasAnyAuthority("TRAINER", "TRAINEE")
+                        .antMatchers(HttpMethod.PUT, "/api/trainees/**").hasAuthority("TRAINEE")
+                        .antMatchers(HttpMethod.PATCH, "/api/trainees").hasAuthority("TRAINEE")
+                        .antMatchers(HttpMethod.DELETE, "/api/trainees/**").hasAuthority("TRAINEE")
                         .antMatchers(HttpMethod.POST, "/api/trainees").permitAll()
-                        .antMatchers(HttpMethod.GET, "/api/trainers/**").hasAnyRole("TRAINER")
-                        .antMatchers(HttpMethod.PUT, "/api/trainers").hasAnyRole("TRAINER")
-                        .antMatchers(HttpMethod.PATCH, "/api/trainers").hasAnyRole("TRAINER")
-                        .antMatchers(HttpMethod.POST, "/api/trainers/**").permitAll()
-                        .antMatchers("/api/training/**").hasAnyRole("TRAINER", "TRAINEE")
+                        .antMatchers(HttpMethod.GET, "/api/trainers/**").hasAnyAuthority("TRAINER", "TRAINEE")
+                        .antMatchers(HttpMethod.PUT, "/api/trainers").hasAuthority("TRAINER")
+                        .antMatchers(HttpMethod.PATCH, "/api/trainers").hasAuthority("TRAINER")
+                        .antMatchers(HttpMethod.POST, "/api/trainers").permitAll()
+                        .antMatchers("/api/training/**").hasAnyAuthority("TRAINER", "TRAINEE")
                         .antMatchers(HttpMethod.GET, "/api/auth").permitAll()
-                        .antMatchers(HttpMethod.PUT, "/api/auth/trainee").hasAnyRole("TRAINEE")
-                        .antMatchers(HttpMethod.PUT, "/api/auth/trainer").hasAnyRole("TRAINER")
+                        .antMatchers(HttpMethod.PUT, "/api/auth/trainee").hasAuthority("TRAINEE")
+                        .antMatchers(HttpMethod.PUT, "/api/auth/trainer").hasAuthority("TRAINER")
                         .antMatchers("/actuator/**").permitAll()
                         .anyRequest()
                         .authenticated())

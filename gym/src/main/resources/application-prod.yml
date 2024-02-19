@@ -1,6 +1,0 @@
-spring:
-  datasource:
-      driver-class-name: org.postgresql.Driver
-      url: jdbc:postgresql://lallah.db.elephantsql.com/gpqpbzjs
-      username: gpqpbzjs
-      password: Dx1c0d11sCoe4Gah8eJFKINHaDjxylqI
