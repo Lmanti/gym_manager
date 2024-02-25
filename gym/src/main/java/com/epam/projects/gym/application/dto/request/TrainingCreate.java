@@ -40,7 +40,7 @@ public class TrainingCreate {
 	@JsonFormat(shape = JsonFormat.Shape.STRING)
 	private Specialization trainingTypeName;
 
-	@NotBlank
+	@NotNull
 	private int duration;
 
 }

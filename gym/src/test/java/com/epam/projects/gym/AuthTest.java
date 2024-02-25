@@ -64,6 +64,25 @@ private MockMvc mockMvc;
 	}
 	
 	@Test
+	void testChangeTraineePasswordWithWrongPassword() throws Exception {
+		
+		ObjectMapper objectMapper = new ObjectMapper();
+		
+		String username = "Luis.Herrera8723";
+		
+		ChangeLogin request = new ChangeLogin();
+		
+		request.setUsername(username);
+		request.setPassword("familia212121");
+		request.setNewPassword("prueba123");
+		
+		mockMvc.perform(MockMvcRequestBuilders.put("/api/auth/trainee")
+				.content(objectMapper.writeValueAsString(request))
+				.contentType(MediaType.APPLICATION_JSON))
+        .andExpect(MockMvcResultMatchers.status().isUnauthorized());
+	}
+	
+	@Test
 	void testChangeTrainerPassword() throws Exception {
 		ObjectMapper objectMapper = new ObjectMapper();
 		
@@ -79,6 +98,24 @@ private MockMvc mockMvc;
 				.content(objectMapper.writeValueAsString(request))
 				.contentType(MediaType.APPLICATION_JSON))
         .andExpect(MockMvcResultMatchers.status().isOk());
+	}
+	
+	@Test
+	void testChangeTrainerPasswordWithWrongPassword() throws Exception {
+		ObjectMapper objectMapper = new ObjectMapper();
+		
+		String username = "Melissa.Lopez";
+		
+		ChangeLogin request = new ChangeLogin();
+		
+		request.setUsername(username);
+		request.setPassword("ee3lLM6llsadasdqwe12");
+		request.setNewPassword("prueba123");
+		
+		mockMvc.perform(MockMvcRequestBuilders.put("/api/auth/trainer")
+				.content(objectMapper.writeValueAsString(request))
+				.contentType(MediaType.APPLICATION_JSON))
+        .andExpect(MockMvcResultMatchers.status().isUnauthorized());
 	}
 
 }

@@ -124,6 +124,29 @@ class TraineeTest {
 	}
 	
 	@Test
+	void testUpdateTraineeWithWrongUsername() throws Exception {
+		
+		ObjectMapper objectMapper = new ObjectMapper();
+		objectMapper.registerModule(new JavaTimeModule());
+		
+		String username = "Luis.Herrera87231111";
+		
+		TraineeUpdate requestBody2 = new TraineeUpdate();
+		
+		requestBody2.setUsername(username);
+		requestBody2.setFirstName("Fulanito");
+		requestBody2.setLastName("Martinez");
+		requestBody2.setDateOfBirth(LocalDate.now());
+		requestBody2.setAddress("Update test");
+		requestBody2.setActive(true);
+		
+		mockMvc.perform(MockMvcRequestBuilders.put("/api/trainees")
+				.content(objectMapper.writeValueAsString(requestBody2))
+				.contentType(MediaType.APPLICATION_JSON))
+			.andExpect(MockMvcResultMatchers.status().isNotFound());
+	}
+	
+	@Test
 	void testFindTraineeByUsername() throws Exception {
 		
 		String username = "Luis.Herrera8723";
@@ -146,6 +169,15 @@ class TraineeTest {
 		
 		mockMvc.perform(MockMvcRequestBuilders.delete("/api/trainees/{username}", username))
                 .andExpect(MockMvcResultMatchers.status().isOk());
+	}
+	
+	@Test
+	void testDeleteTraineeWithWrongUsername() throws Exception {
+		
+		String username = "Luis.Herrera872311111";
+		
+		mockMvc.perform(MockMvcRequestBuilders.delete("/api/trainees/{username}", username))
+                .andExpect(MockMvcResultMatchers.status().isNotFound());
 	}
 	
 	@Test
@@ -199,6 +231,44 @@ class TraineeTest {
 				.content(objectMapper.writeValueAsString(request))
 				.contentType(MediaType.APPLICATION_JSON))
 			.andExpect(MockMvcResultMatchers.status().isOk());
+	}
+	
+	@Test
+	void testBadEditTraineeTrainersList() throws Exception {
+		ObjectMapper objectMapper = new ObjectMapper();
+		UpdateTrainerList request = new UpdateTrainerList();
+
+		
+		String username = "Luis.Herrera8723";
+		List<String> trainers = new ArrayList<String>();
+		trainers.add("fELIPITOjULIO");
+		
+		request.setUsername(username);
+		request.setTrainerList(trainers);		
+		
+		mockMvc.perform(MockMvcRequestBuilders.put("/api/trainees/trainerList")
+				.content(objectMapper.writeValueAsString(request))
+				.contentType(MediaType.APPLICATION_JSON))
+			.andExpect(MockMvcResultMatchers.status().isNotFound());
+	}
+	
+	@Test
+	void testBadEditTraineeTrainersList2() throws Exception {
+		ObjectMapper objectMapper = new ObjectMapper();
+		UpdateTrainerList request = new UpdateTrainerList();
+
+		
+		String username = "Luis.Herrera872312123";
+		List<String> trainers = new ArrayList<String>();
+		trainers.add("Melissa.Lopez");
+		
+		request.setUsername(username);
+		request.setTrainerList(trainers);		
+		
+		mockMvc.perform(MockMvcRequestBuilders.put("/api/trainees/trainerList")
+				.content(objectMapper.writeValueAsString(request))
+				.contentType(MediaType.APPLICATION_JSON))
+			.andExpect(MockMvcResultMatchers.status().isNotFound());
 	}
 
 }
