@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
@@ -42,7 +41,7 @@ public class TraineeEntity implements Serializable {
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid2")
 	@JsonProperty("traineeId")
-	private UUID traineeId;
+	private String traineeId;
 	
 	@Column(nullable = true)
 	@JsonProperty("dateOfBirth")

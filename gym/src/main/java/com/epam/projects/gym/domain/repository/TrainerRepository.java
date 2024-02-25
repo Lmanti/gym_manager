@@ -19,4 +19,6 @@ public interface TrainerRepository {
 
 	public Optional<Trainer> findByUsernameAndPassword(String username, String password);
 
+	public boolean existByUsername(String username);
+
 }

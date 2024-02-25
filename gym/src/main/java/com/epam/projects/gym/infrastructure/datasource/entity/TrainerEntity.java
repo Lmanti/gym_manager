@@ -3,7 +3,6 @@ package com.epam.projects.gym.infrastructure.datasource.entity;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
@@ -41,7 +40,7 @@ public class TrainerEntity implements Serializable {
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid2")
 	@JsonProperty("trainerId")
-	private UUID trainerId;
+	private String trainerId;
 	
 	@ManyToOne
 	@JoinColumn(name = "trainingTypeId")

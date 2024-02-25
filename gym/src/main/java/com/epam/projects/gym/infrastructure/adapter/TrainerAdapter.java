@@ -51,7 +51,7 @@ public class TrainerAdapter implements TrainerRepository {
 				return Collections.emptyList();
 			}			
 		} catch (Exception e) {
-			log.debug("Error while trying to fetch all Trainers from the database.", e);
+			log.error("Error while trying to fetch all Trainers from the database.", e);
 			throw new DatabaseException("Error while trying to fetch all Trainers from the database.", e);
 		}
 	}
@@ -67,7 +67,7 @@ public class TrainerAdapter implements TrainerRepository {
 				return Optional.empty();
 			}
 		} catch (Exception e) {
-			log.debug("Error while trying to fetch by username a Trainer from the database.", e);
+			log.error("Error while trying to fetch by username a Trainer from the database.", e);
 			throw new DatabaseException("Error while trying to fetch by username a Trainer from the database.", e);
 		}
 	}
@@ -96,7 +96,7 @@ public class TrainerAdapter implements TrainerRepository {
 			log.debug("Trainer created successfully with ID: {}", createdTrainer.getTrainerId());
 			return Optional.of(createdTrainer.toDomain());
 		} catch (Exception e) {
-			log.debug("Error while trying to register a Trainer.", e);
+			log.error("Error while trying to register a Trainer.", e);
 			throw new DatabaseException("Error while trying to register a Trainer.", e);
 		}
 	}
@@ -118,10 +118,10 @@ public class TrainerAdapter implements TrainerRepository {
 			}
 			
 			TrainerEntity updatedTrainer = trainerJpaRepository.save(foundTrainer.get());
-			log.debug("Trainer with ID '{}' updated successfully.", updatedTrainer.getTrainerId());
+			log.error("Trainer with ID '{}' updated successfully.", updatedTrainer.getTrainerId());
 			return Optional.of(updatedTrainer.toDomain());
 		} catch (Exception e) {
-			log.debug("Error while trying to update a Trainer.", e);
+			log.error("Error while trying to update a Trainer.", e);
 			throw new DatabaseException("Error while trying to update a Trainer.", e);
 		}
 	}
@@ -137,7 +137,7 @@ public class TrainerAdapter implements TrainerRepository {
 				return Collections.emptyList();
 			}			
 		} catch (Exception e) {
-			log.debug("Error while trying to fetch all Trainers from the database.", e);
+			log.error("Error while trying to fetch all Trainers from the database.", e);
 			throw new DatabaseException("Error while trying to fetch all Trainers from the database.", e);
 		}
 	}
@@ -156,9 +156,19 @@ public class TrainerAdapter implements TrainerRepository {
 				return Optional.empty();
 			}
 		} catch (Exception e) {
-			log.debug("Error while trying to validate a password for trainer with username: " + username, e);
+			log.error("Error while trying to validate a password for trainer with username: " + username, e);
 			throw new DatabaseException("Error while trying to validate a password for trainer with username: " + username, e);
 		}
 	}
 
+	@Transactional(readOnly = true)
+	@Override
+	public boolean existByUsername(String username) {
+		try {
+			return trainerJpaRepository.existsByUserIdUsername(username);
+		} catch (Exception e) {
+			log.error("Error while trying to validate if exists a trainer with username: " + username, e);
+			throw new DatabaseException("Error while trying to validate if exists a trainer with username: " + username, e);
+		}
+	}
 }

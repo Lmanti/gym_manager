@@ -1,7 +1,5 @@
 package com.epam.projects.gym.domain.entity;
 
-import java.util.UUID;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,7 +11,7 @@ import lombok.ToString;
 @ToString
 public class TrainingType {
 
-	private UUID id;
+	private String id;
 	
 	private String name;
 

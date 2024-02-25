@@ -1,15 +1,17 @@
 package com.epam.projects.gym;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -18,12 +20,14 @@ import org.springframework.transaction.annotation.Transactional;
 import com.epam.projects.gym.application.dto.request.ChangeUserStatus;
 import com.epam.projects.gym.application.dto.request.TraineeRegister;
 import com.epam.projects.gym.application.dto.request.TraineeUpdate;
-import com.epam.projects.gym.application.dto.response.TraineeProfile;
+import com.epam.projects.gym.application.dto.request.UpdateTrainerList;
 import com.epam.projects.gym.infrastructure.controller.TraineeController;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @SpringBootTest
+@Transactional
+@Rollback
 @TestPropertySource(locations = "classpath:application-test.properties")
 class TraineeTest {
 
@@ -38,14 +42,12 @@ class TraineeTest {
 	}
 	
 	@Test
-	@Transactional
 	void testListTrainees() throws Exception {
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/trainees"))
 			.andExpect(MockMvcResultMatchers.status().isOk());
 	}
 	
 	@Test
-	@Transactional
 	void testCreateTrainee() throws Exception {
 		
 		ObjectMapper objectMapper = new ObjectMapper();
@@ -61,6 +63,19 @@ class TraineeTest {
 				.content(objectMapper.writeValueAsString(requestBody))
 				.contentType(MediaType.APPLICATION_JSON))
 			.andExpect(MockMvcResultMatchers.status().isCreated());
+	}
+	
+	@Test
+	void testCreateTraineeWithExistingUsername() throws Exception {
+		
+		ObjectMapper objectMapper = new ObjectMapper();
+		objectMapper.registerModule(new JavaTimeModule());
+		
+		TraineeRegister requestBody = new TraineeRegister();
+		requestBody.setFirstName("Luis");
+		requestBody.setLastName("Herrera8723");
+		requestBody.setAddress("test 123");
+		requestBody.setDateOfBirth(LocalDate.now());
 		
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/trainees")
 				.content(objectMapper.writeValueAsString(requestBody))
@@ -69,7 +84,6 @@ class TraineeTest {
 	}
 	
 	@Test
-	@Transactional
 	void testCreateTraineeWithoutLastName() throws Exception {
 		
 		ObjectMapper objectMapper = new ObjectMapper();
@@ -87,37 +101,19 @@ class TraineeTest {
 	}
 	
 	@Test
-	@Transactional
 	void testUpdateTrainee() throws Exception {
 		
 		ObjectMapper objectMapper = new ObjectMapper();
 		objectMapper.registerModule(new JavaTimeModule());
 		
-		TraineeRegister requestBody = new TraineeRegister();
-		requestBody.setFirstName("Benancio");
-		requestBody.setLastName("Martinez");
-		requestBody.setAddress("test 123");
-		requestBody.setDateOfBirth(LocalDate.now());
-		
-		mockMvc.perform(MockMvcRequestBuilders.post("/api/trainees")
-				.content(objectMapper.writeValueAsString(requestBody))
-				.contentType(MediaType.APPLICATION_JSON))
-			.andExpect(MockMvcResultMatchers.status().isCreated());
-		
-		String username = requestBody.getFirstName() + "." +  requestBody.getLastName();
-		
-		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/api/trainees/{username}", username))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andReturn();
-		
-		TraineeProfile createdTrainee = objectMapper.readValue(result.getResponse().getContentAsString(), TraineeProfile.class);
+		String username = "Luis.Herrera8723";
 		
 		TraineeUpdate requestBody2 = new TraineeUpdate();
 		
 		requestBody2.setUsername(username);
-		requestBody2.setFirstName(createdTrainee.getFirstName());
-		requestBody2.setLastName(createdTrainee.getLastName());
-		requestBody2.setDateOfBirth(createdTrainee.getDateOfBirth());
+		requestBody2.setFirstName("Fulanito");
+		requestBody2.setLastName("Martinez");
+		requestBody2.setDateOfBirth(LocalDate.now());
 		requestBody2.setAddress("Update test");
 		requestBody2.setActive(true);
 		
@@ -128,78 +124,37 @@ class TraineeTest {
 	}
 	
 	@Test
-	@Transactional
 	void testFindTraineeByUsername() throws Exception {
 		
-		ObjectMapper objectMapper = new ObjectMapper();
-		objectMapper.registerModule(new JavaTimeModule());
-		
-		TraineeRegister requestBody = new TraineeRegister();
-		requestBody.setFirstName("Alexander");
-		requestBody.setLastName("Mina");
-		requestBody.setAddress("test 123");
-		requestBody.setDateOfBirth(LocalDate.now());
-		
-		mockMvc.perform(MockMvcRequestBuilders.post("/api/trainees")
-				.content(objectMapper.writeValueAsString(requestBody))
-				.contentType(MediaType.APPLICATION_JSON))
-			.andExpect(MockMvcResultMatchers.status().isCreated());
-		
-		String username = requestBody.getFirstName() + "." +  requestBody.getLastName();
+		String username = "Luis.Herrera8723";
 		
 		mockMvc.perform(MockMvcRequestBuilders.get("/api/trainees/{username}", username))
                 .andExpect(MockMvcResultMatchers.status().isOk());
-		
-		mockMvc.perform(MockMvcRequestBuilders.get("/api/trainees/{username}", "pepitoperez"))
-        .andExpect(MockMvcResultMatchers.status().isNotFound());
 	}
 	
 	@Test
-	@Transactional
+	void testFindTraineeByWrongUsername() throws Exception {
+		
+		mockMvc.perform(MockMvcRequestBuilders.get("/api/trainees/{username}", "pepitoperez"))
+	    .andExpect(MockMvcResultMatchers.status().isNotFound());
+	}
+	
+	@Test
 	void testDeleteTrainee() throws Exception {
 		
-		ObjectMapper objectMapper = new ObjectMapper();
-		objectMapper.registerModule(new JavaTimeModule());
-		
-		TraineeRegister requestBody = new TraineeRegister();
-		requestBody.setFirstName("Facundo");
-		requestBody.setLastName("Rosalez");
-		requestBody.setAddress("test 123");
-		requestBody.setDateOfBirth(LocalDate.now());
-		
-		mockMvc.perform(MockMvcRequestBuilders.post("/api/trainees")
-				.content(objectMapper.writeValueAsString(requestBody))
-				.contentType(MediaType.APPLICATION_JSON))
-			.andExpect(MockMvcResultMatchers.status().isCreated());
-		
-		String username = requestBody.getFirstName() + "." +  requestBody.getLastName();
-		
-		mockMvc.perform(MockMvcRequestBuilders.get("/api/trainees/{username}", username))
-                .andExpect(MockMvcResultMatchers.status().isOk());
+		String username = "Luis.Herrera8723";
 		
 		mockMvc.perform(MockMvcRequestBuilders.delete("/api/trainees/{username}", username))
                 .andExpect(MockMvcResultMatchers.status().isOk());
 	}
 	
 	@Test
-	@Transactional
 	void testDeActivateTrainee() throws Exception {
-		ChangeUserStatus request = new ChangeUserStatus();
 		ObjectMapper objectMapper = new ObjectMapper();
-		objectMapper.registerModule(new JavaTimeModule());
+		ChangeUserStatus request = new ChangeUserStatus();
+
 		
-		TraineeRegister requestBody = new TraineeRegister();
-		requestBody.setFirstName("Facundo");
-		requestBody.setLastName("Rosalez");
-		requestBody.setAddress("test 123");
-		requestBody.setDateOfBirth(LocalDate.now());
-		
-		mockMvc.perform(MockMvcRequestBuilders.post("/api/trainees")
-				.content(objectMapper.writeValueAsString(requestBody))
-				.contentType(MediaType.APPLICATION_JSON))
-			.andExpect(MockMvcResultMatchers.status().isCreated());
-		
-		String username = requestBody.getFirstName() + "." +  requestBody.getLastName();
+		String username = "Luis.Herrera8723";
 		
 		request.setUsername(username);
 		request.setActive(false);		
@@ -211,32 +166,39 @@ class TraineeTest {
 	}
 	
 	@Test
-	@Transactional
 	void testDeActivateTraineeWithWrongName() throws Exception {
-		ChangeUserStatus request = new ChangeUserStatus();
 		ObjectMapper objectMapper = new ObjectMapper();
-		objectMapper.registerModule(new JavaTimeModule());
+		ChangeUserStatus request = new ChangeUserStatus();
+
 		
-		TraineeRegister requestBody = new TraineeRegister();
-		requestBody.setFirstName("Facundo");
-		requestBody.setLastName("Rosalez");
-		requestBody.setAddress("test 123");
-		requestBody.setDateOfBirth(LocalDate.now());
+		String username = "Luis.Herrera";
 		
-		mockMvc.perform(MockMvcRequestBuilders.post("/api/trainees")
-				.content(objectMapper.writeValueAsString(requestBody))
-				.contentType(MediaType.APPLICATION_JSON))
-			.andExpect(MockMvcResultMatchers.status().isCreated());
-		
-		String username = requestBody.getFirstName() + "." +  requestBody.getLastName();
-		
-		request.setUsername(username + "2");
-		request.setActive(false);
+		request.setUsername(username);
+		request.setActive(false);		
 		
 		mockMvc.perform(MockMvcRequestBuilders.patch("/api/trainees")
 				.content(objectMapper.writeValueAsString(request))
 				.contentType(MediaType.APPLICATION_JSON))
 			.andExpect(MockMvcResultMatchers.status().isNotFound());
+	}
+	
+	@Test
+	void testEditTraineeTrainersList() throws Exception {
+		ObjectMapper objectMapper = new ObjectMapper();
+		UpdateTrainerList request = new UpdateTrainerList();
+
+		
+		String username = "Luis.Herrera8723";
+		List<String> trainers = new ArrayList<String>();
+		trainers.add("Melissa.Lopez");
+		
+		request.setUsername(username);
+		request.setTrainerList(trainers);		
+		
+		mockMvc.perform(MockMvcRequestBuilders.put("/api/trainees/trainerList")
+				.content(objectMapper.writeValueAsString(request))
+				.contentType(MediaType.APPLICATION_JSON))
+			.andExpect(MockMvcResultMatchers.status().isOk());
 	}
 
 }

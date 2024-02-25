@@ -74,7 +74,7 @@ public class TraineeAdapter implements TraineeRepository {
 			log.debug("Trainee created successfully with ID: {}", createdTrainee.getTraineeId());
 			return Optional.of(createdTrainee.toDomain());
 		} catch (Exception e) {
-			log.debug("Error while trying to register a Trainee.", e);
+			log.error("Error while trying to register a Trainee.", e);
 			throw new DatabaseException("Error while trying to register a Trainee.", e);
 		}
 	}
@@ -91,7 +91,7 @@ public class TraineeAdapter implements TraineeRepository {
 				return Collections.emptyList();
 			}			
 		} catch (Exception e) {
-			log.debug("Error while trying to fetch all Trainees from the database.", e);
+			log.error("Error while trying to fetch all Trainees from the database.", e);
 			throw new DatabaseException("Error while trying to fetch all Trainees from the database.", e);
 		}
 	}
@@ -106,7 +106,7 @@ public class TraineeAdapter implements TraineeRepository {
 					? Optional.of(foundTrainee.get().toDomain())
 					: Optional.empty();
 		} catch (Exception e) {
-			log.debug("Error while trying to fetch by username an users from the database.", e);
+			log.error("Error while trying to fetch by username an users from the database.", e);
 			throw new DatabaseException("Error while trying to fetch by username an users from the database.", e);
 		}
 	}
@@ -133,7 +133,7 @@ public class TraineeAdapter implements TraineeRepository {
 			log.debug("Trainee with ID '{}' updated successfully.", updatedTrainee.getTraineeId());
 			return Optional.of(updatedTrainee.toDomain());
 		} catch (Exception e) {
-			log.debug("Error while trying to update a Trainee.", e);
+			log.error("Error while trying to update a Trainee.", e);
 			throw new DatabaseException("Error while trying to update a Trainee.", e);
 		}
 	}
@@ -147,7 +147,7 @@ public class TraineeAdapter implements TraineeRepository {
 			log.debug("Trainee with username '{}' deleted succesfully.", username);
 			return true;
 		} catch (Exception e) {
-			log.debug("Error while trying to delete an user.", e);
+			log.error("Error while trying to delete an user.", e);
 			throw new DatabaseException("Error while trying to delete an user.", e);
 		}
 	}
@@ -184,7 +184,7 @@ public class TraineeAdapter implements TraineeRepository {
 			return foundTrainers.stream()
 					.map(TrainerEntity::toDomain).collect(Collectors.toList());
 		} catch (Exception e) {
-			log.debug("Error while trying to bulk assign trainers to a trainee.", e);
+			log.error("Error while trying to bulk assign trainers to a trainee.", e);
 			throw new DatabaseException("Error while trying to bulk assign trainers to a trainee.", e);
 		}
 	}
@@ -203,8 +203,19 @@ public class TraineeAdapter implements TraineeRepository {
 				return Optional.empty();
 			}
 		} catch (Exception e) {
-			log.debug("Error while trying to validate a password for trainee with username: " + username, e);
+			log.error("Error while trying to validate a password for trainee with username: " + username, e);
 			throw new DatabaseException("Error while trying to validate a password for trainee with username: " + username, e);
+		}
+	}
+	
+	@Transactional(readOnly = true)
+	@Override
+	public boolean existByUsername(String username) {
+		try {
+			return traineeJpaRepository.existsByUserIdUsername(username);
+		} catch (Exception e) {
+			log.error("Error while trying to validate if exists a trainee with username: " + username, e);
+			throw new DatabaseException("Error while trying to validate if exists a trainee with username: " + username, e);
 		}
 	}
 

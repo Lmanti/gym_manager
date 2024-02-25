@@ -21,6 +21,7 @@ import com.epam.projects.gym.application.service.TraineeService;
 import com.epam.projects.gym.domain.entity.Trainee;
 import com.epam.projects.gym.domain.exception.CreationException;
 import com.epam.projects.gym.domain.exception.NotFoundException;
+import com.epam.projects.gym.domain.exception.NotMatchException;
 import com.epam.projects.gym.domain.exception.UpdateException;
 import com.epam.projects.gym.domain.repository.TraineeRepository;
 import com.epam.projects.gym.domain.repository.TrainerRepository;
@@ -76,7 +77,7 @@ public class TraineeServiceImpl implements TraineeService {
 					Randomizer.createUsername(trainee.getFirstName(), trainee.getLastName());				
 		}
 		
-		exist = traineeRepository.findByUsername(randomUsername).isPresent();
+		exist = traineeRepository.existByUsername(randomUsername);
 		
 		if (exist) {
 			log.info("Trainee with username {} alredy exist, giving a new username and trying again.", randomUsername);
@@ -175,18 +176,18 @@ public class TraineeServiceImpl implements TraineeService {
 			return true;				
 		} else {
 			log.error("Invalid credentials, incorrect username or password.");
-			throw new NotFoundException("Invalid credentials, incorrect username or password.");
+			throw new NotMatchException("Invalid credentials, incorrect username or password.");
 		}
 	}
 
 	@Override
 	public List<TrainerAssignedDto> updateTrainerList(UpdateTrainerList newData) {
 		log.info("Updating trainee's trainer list for trainee with username: {}", newData.getUsername());
-		Optional<Trainee> foundTrainee = traineeRepository.findByUsername(newData.getUsername());
-		if (foundTrainee.isPresent()) {
+		boolean existTrainee = traineeRepository.existByUsername(newData.getUsername());
+		if (existTrainee) {
 			newData.getTrainerList().stream().forEach(trainerUsername -> {
 				log.info("Validating if trainer with username {} exist.", trainerUsername);
-				if (!trainerRepository.findByUsername(trainerUsername).isPresent()) {
+				if (!trainerRepository.existByUsername(trainerUsername)) {
 					throw new NotFoundException("Couldn't find a trainer with username: " + trainerUsername);
 				}
 			});

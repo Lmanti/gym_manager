@@ -23,4 +23,6 @@ public interface TraineeRepository {
 
 	public Optional<Trainee> findByUsernameAndPassword(String username, String password);
 
+	public boolean existByUsername(String username);
+
 }

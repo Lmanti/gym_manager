@@ -9,10 +9,12 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @ApiModel(description = "Trainer Registration Details")
 @Getter
 @Setter
+@ToString(callSuper = true)
 public class TrainerRegister extends UserRegister {
 
 	@NotNull

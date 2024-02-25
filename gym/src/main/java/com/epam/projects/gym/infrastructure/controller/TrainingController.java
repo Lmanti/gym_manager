@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -41,13 +42,9 @@ public class TrainingController {
             @ApiResponse(code = 201, message = "Training registered successfully."),
             @ApiResponse(code = 400, message = "Training adding operation failed, please check the info.")
     })
-	public ResponseEntity<Void> createTraining(@Valid @RequestBody TrainingCreate training) {
-		boolean newTraining = trainingService.createTraining(training);
-		if (newTraining) {
-			return ResponseEntity.status(201).build();
-		} else {
-			return ResponseEntity.status(400).build();
-		}
+	public ResponseEntity<Object> createTraining(@RequestBody @Valid TrainingCreate training) {
+		trainingService.createTraining(training);
+		return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 	
 	@GetMapping("/trainees")
@@ -55,9 +52,9 @@ public class TrainingController {
 	@ApiResponses(value = {
             @ApiResponse(code = 200, message = "Trainings list retrieved successfully.")
     })
-	public ResponseEntity<List<Trainings2Trainee>> getTraineeTrainingList(@Valid @ModelAttribute TraineeTraining training) {
+	public ResponseEntity<List<Trainings2Trainee>> getTraineeTrainingList(@ModelAttribute @Valid TraineeTraining training) {
 		List<Trainings2Trainee> trainings = trainingService.getTrainingsForTrainee(training);
-		return ResponseEntity.status(200).body(trainings);
+		return ResponseEntity.status(HttpStatus.OK).body(trainings);
     }
 	
 	@GetMapping("/trainers")
@@ -65,9 +62,9 @@ public class TrainingController {
 	@ApiResponses(value = {
             @ApiResponse(code = 200, message = "Trainings list retrieved successfully.")
     })
-	public ResponseEntity<List<Trainings2Trainers>> getTrainerTrainingList(@Valid @ModelAttribute TrainerTraining training) {
+	public ResponseEntity<List<Trainings2Trainers>> getTrainerTrainingList(@ModelAttribute @Valid TrainerTraining training) {
 		List<Trainings2Trainers> trainings = trainingService.getTrainingsForTrainer(training);
-		return ResponseEntity.status(200).body(trainings);
+		return ResponseEntity.status(HttpStatus.OK).body(trainings);
     }
 
 }

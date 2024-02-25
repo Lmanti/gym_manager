@@ -49,7 +49,7 @@ public class TrainingAdapter implements TrainingRepository {
 
 	@Transactional(rollbackFor = DatabaseException.class)
 	@Override
-	public Training createTraining(Training newTraining) {
+	public Optional<Training> createTraining(Training newTraining) {
 		log.debug("Creating training: {}", newTraining);
 		try {
 			Optional<TraineeEntity> trainee = traineeJpaRepository.findById(newTraining.getTraineeId().getId());
@@ -67,9 +67,9 @@ public class TrainingAdapter implements TrainingRepository {
 			
 			TrainingEntity createdTraining = trainingJpaRepository.save(training);
 			log.debug("Training created successfully with ID: {}", createdTraining.getTrainingId());
-			return createdTraining.toDomain();
+			return Optional.of(createdTraining.toDomain());
 		} catch (Exception exception) {
-			log.debug("Error while trying to register a Training.", exception);
+			log.error("Error while trying to register a Training.", exception);
 			throw new DatabaseException("Error while trying to register a Training.", exception);
 		}
 	}
@@ -81,7 +81,7 @@ public class TrainingAdapter implements TrainingRepository {
 			List<TrainingEntity> trainingList = trainingJpaRepository.findAll(new TrainingEntitySpecification(specification));
 			return trainingList.stream().map(TrainingEntity::toDomain).collect(Collectors.toList());			
 		} catch (Exception exception) {
-			log.debug("Error while trying to retrieve specified Trainings data.", exception);
+			log.error("Error while trying to retrieve specified Trainings data.", exception);
 			throw new DatabaseException("Error while trying to retrieve specified Trainings data.", exception);
 		}
 	}

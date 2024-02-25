@@ -1,7 +1,6 @@
 package com.epam.projects.gym.infrastructure.datasource.entity;
 
 import java.io.Serializable;
-import java.util.UUID;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -33,7 +32,7 @@ public class UserEntity implements Serializable {
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid2")
 	@JsonProperty("userid")
-	private UUID userId;
+	private String userId;
 	
 	@Column
 	@JsonProperty("firstName")

@@ -25,9 +25,6 @@ import com.epam.projects.gym.application.dto.response.TrainerProfile;
 import com.epam.projects.gym.application.dto.response.TrainerUpdated;
 import com.epam.projects.gym.application.dto.response.UserCreated;
 import com.epam.projects.gym.application.service.TrainerService;
-import com.epam.projects.gym.domain.exception.CreationException;
-import com.epam.projects.gym.domain.exception.NotFoundException;
-import com.epam.projects.gym.domain.exception.UpdateException;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -61,15 +58,9 @@ public class TrainerController {
             @ApiResponse(code = 201, message = "Trainer registered successfully."),
             @ApiResponse(code = 400, message = "Register failed, please check the info.")
     })
-	public ResponseEntity<Object> createTrainer(@Valid @RequestBody TrainerRegister trainer) {
-		try {
-			Optional<UserCreated> newTrainer = trainerService.createTrainer(trainer);
-			return ResponseEntity.status(HttpStatus.CREATED).body(newTrainer.get());
-		} catch (CreationException exception) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exception.getMessage());
-		} catch (Exception exception) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exception.getMessage());
-		}
+	public ResponseEntity<Object> createTrainer(@RequestBody @Valid TrainerRegister trainer) {
+		Optional<UserCreated> newTrainer = trainerService.createTrainer(trainer);
+		return ResponseEntity.status(HttpStatus.CREATED).body(newTrainer.get());
     }
 	
 	@GetMapping("/{username}")
@@ -79,14 +70,8 @@ public class TrainerController {
             @ApiResponse(code = 404, message = "No trainer can be found.")
     })
 	public ResponseEntity<Object> getTrainerByUsername(@PathVariable String username) {
-		try {
-			Optional<TrainerProfile> trainee = trainerService.getTrainerByUsername(username);
-			return ResponseEntity.status(HttpStatus.OK).body(trainee.get());
-		} catch (NotFoundException exception) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
-		} catch (Exception exception) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exception.getMessage());
-		}
+		Optional<TrainerProfile> trainee = trainerService.getTrainerByUsername(username);
+		return ResponseEntity.status(HttpStatus.OK).body(trainee.get());
     }
 	
 	@PutMapping
@@ -95,15 +80,9 @@ public class TrainerController {
             @ApiResponse(code = 200, message = "Trainer updated successfully."),
             @ApiResponse(code = 400, message = "Update failed, please check the info.")
     })
-	public ResponseEntity<Object> updateTrainee(@Valid @RequestBody TrainerUpdate trainer) {
-		try {
-			Optional<TrainerUpdated> updated = trainerService.updateTrainer(trainer);
-			return ResponseEntity.status(HttpStatus.OK).body(updated.get());
-		} catch (UpdateException exception) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exception.getMessage());
-		} catch (Exception exception) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exception.getMessage());
-		}
+	public ResponseEntity<Object> updateTrainee(@RequestBody @Valid TrainerUpdate trainer) {
+		Optional<TrainerUpdated> updated = trainerService.updateTrainer(trainer);
+		return ResponseEntity.status(HttpStatus.OK).body(updated.get());
     }
 	
 	@PatchMapping
@@ -112,15 +91,9 @@ public class TrainerController {
             @ApiResponse(code = 201, message = "Trainer updated successfully."),
             @ApiResponse(code = 404, message = "Update failed, please check the info.")
     })
-	public ResponseEntity<Object> activateDeactivateTrainee(@Valid @RequestBody ChangeUserStatus request) {
-		try {
-			trainerService.changeTrainerStatus(request);
-			return ResponseEntity.status(HttpStatus.OK).build();
-		} catch (NotFoundException exception) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
-		} catch (Exception exception) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exception.getMessage());
-		}
+	public ResponseEntity<Object> activateDeactivateTrainer(@RequestBody @Valid ChangeUserStatus request) {
+		trainerService.changeTrainerStatus(request);
+		return ResponseEntity.status(HttpStatus.OK).build();
     }
 	
 	@GetMapping("/notAssociated")
@@ -130,7 +103,7 @@ public class TrainerController {
     })
 	public ResponseEntity<List<TrainerAssignedDto>> getAllNonAssociatedTrainers(@RequestParam String username) {
 		List<TrainerAssignedDto> trainers = trainerService.getAllNonAssociatedTrainers(username);
-		return ResponseEntity.status(200).body(trainers);
+		return ResponseEntity.status(HttpStatus.OK).body(trainers);
     }
 	
 }

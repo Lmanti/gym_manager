@@ -2,7 +2,6 @@ package com.epam.projects.gym.infrastructure.datasource.entity;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.UUID;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -34,7 +33,7 @@ public class TrainingTypeEntity implements Serializable {
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid2")
 	@JsonProperty("trainingTypeId")
-	private UUID trainingTypeId;
+	private String trainingTypeId;
 	
 	@Column
 	@JsonProperty("name")
@@ -49,7 +48,7 @@ public class TrainingTypeEntity implements Serializable {
 	private List<TrainingEntity> trainingId;
 	
 	public TrainingTypeEntity(
-			@NonNull UUID trainingTypeId,
+			@NonNull String trainingTypeId,
 			@NonNull String name
 			) {
 		this.trainingTypeId = trainingTypeId;

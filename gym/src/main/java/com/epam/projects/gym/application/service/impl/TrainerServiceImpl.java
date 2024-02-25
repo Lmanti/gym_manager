@@ -19,6 +19,7 @@ import com.epam.projects.gym.domain.entity.Trainer;
 import com.epam.projects.gym.domain.entity.TrainingType;
 import com.epam.projects.gym.domain.exception.CreationException;
 import com.epam.projects.gym.domain.exception.NotFoundException;
+import com.epam.projects.gym.domain.exception.NotMatchException;
 import com.epam.projects.gym.domain.exception.UpdateException;
 import com.epam.projects.gym.domain.repository.TrainerRepository;
 import com.epam.projects.gym.domain.repository.TrainingTypeRepository;
@@ -62,7 +63,7 @@ public class TrainerServiceImpl implements TrainerService {
 					Randomizer.createUsername(trainer.getFirstName(), trainer.getLastName());				
 		}
 		
-		exist = trainerRepository.findByUsername(randomUsername).isPresent();
+		exist = trainerRepository.existByUsername(randomUsername);
 		
 		if (exist) {
 			log.info("Trainer with username {} alredy exist, giving a new username and trying again.", randomUsername);
@@ -160,7 +161,7 @@ public class TrainerServiceImpl implements TrainerService {
 			return true;				
 		} else {
 			log.error("Invalid credentials, incorrect username or password.");
-			throw new NotFoundException("Invalid credentials, incorrect username or password.");
+			throw new NotMatchException("Invalid credentials, incorrect username or password.");
 		}
 	}
 

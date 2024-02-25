@@ -26,9 +26,6 @@ import com.epam.projects.gym.application.dto.response.TraineeProfile;
 import com.epam.projects.gym.application.dto.response.TraineeUpdated;
 import com.epam.projects.gym.application.dto.response.UserCreated;
 import com.epam.projects.gym.application.service.TraineeService;
-import com.epam.projects.gym.domain.exception.CreationException;
-import com.epam.projects.gym.domain.exception.NotFoundException;
-import com.epam.projects.gym.domain.exception.UpdateException;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -53,7 +50,7 @@ public class TraineeController {
     })
 	public ResponseEntity<List<TraineeProfile>> getAllTrainees() {
 		List<TraineeProfile> trainees = traineeService.getAllTrainees();
-		return ResponseEntity.status(200).body(trainees);
+		return ResponseEntity.status(HttpStatus.OK).body(trainees);
     }
 	
 	@GetMapping("/{username}")
@@ -63,14 +60,8 @@ public class TraineeController {
             @ApiResponse(code = 404, message = "No trainee can be found.")
     })
 	public ResponseEntity<Object> getTraineeByUsername(@PathVariable String username) {
-		try {
-			Optional<TraineeProfile> trainee = traineeService.getTraineeByUsername(username);
-			return ResponseEntity.status(HttpStatus.OK).body(trainee.get());
-		} catch (NotFoundException exception) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
-		} catch (Exception exception) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exception.getMessage());
-		}
+		Optional<TraineeProfile> trainee = traineeService.getTraineeByUsername(username);
+		return ResponseEntity.status(HttpStatus.OK).body(trainee.get());
     }
 
 	@PostMapping
@@ -79,15 +70,9 @@ public class TraineeController {
             @ApiResponse(code = 201, message = "Trainee registered successfully."),
             @ApiResponse(code = 400, message = "Register failed, please check the info.")
     })
-	public ResponseEntity<Object> createTrainee(@Valid @RequestBody TraineeRegister trainee) {
-		try {
-			Optional<UserCreated> newTrainee = traineeService.createTrainee(trainee);
-			return ResponseEntity.status(HttpStatus.CREATED).body(newTrainee.get());
-		} catch (CreationException exception) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exception.getMessage());
-		} catch (Exception exception) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exception.getMessage());
-		}
+	public ResponseEntity<Object> createTrainee(@RequestBody @Valid TraineeRegister trainee) {
+		Optional<UserCreated> newTrainee = traineeService.createTrainee(trainee);
+		return ResponseEntity.status(HttpStatus.CREATED).body(newTrainee.get());
     }
 	
 	@PutMapping
@@ -96,15 +81,9 @@ public class TraineeController {
             @ApiResponse(code = 200, message = "Trainee updated successfully."),
             @ApiResponse(code = 400, message = "Update failed, please check the info.")
     })
-	public ResponseEntity<Object> updateTrainee(@Valid @RequestBody TraineeUpdate trainee) {
-		try {
-			Optional<TraineeUpdated> updated = traineeService.updateTrainee(trainee);
-			return ResponseEntity.status(HttpStatus.OK).body(updated.get());
-		} catch (UpdateException exception) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exception.getMessage());
-		} catch (Exception exception) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exception.getMessage());
-		}
+	public ResponseEntity<Object> updateTrainee(@RequestBody @Valid TraineeUpdate trainee) {
+		Optional<TraineeUpdated> updated = traineeService.updateTrainee(trainee);
+		return ResponseEntity.status(HttpStatus.OK).body(updated.get());
     }
 	
 	@PatchMapping
@@ -113,15 +92,9 @@ public class TraineeController {
             @ApiResponse(code = 200, message = "Trainee updated successfully."),
             @ApiResponse(code = 404, message = "Update failed, please check the info.")
     })
-	public ResponseEntity<Object> activateDeactivateTrainee(@Valid @RequestBody ChangeUserStatus request) {
-		try {
-			traineeService.changeTraineeStatus(request);
-			return ResponseEntity.status(HttpStatus.OK).build();
-		} catch (NotFoundException exception) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
-		} catch (Exception exception) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exception.getMessage());
-		}
+	public ResponseEntity<Object> activateDeactivateTrainee(@RequestBody @Valid ChangeUserStatus request) {
+		traineeService.changeTraineeStatus(request);
+		return ResponseEntity.status(HttpStatus.OK).build();
     }
 	
 	@PutMapping("/trainerList")
@@ -129,15 +102,9 @@ public class TraineeController {
 	@ApiResponses(value = {
             @ApiResponse(code = 200, message = "Trainee's list updated successfully.")
     })
-	public ResponseEntity<Object> updateTraineeTrainerList(@Valid @RequestBody UpdateTrainerList newData) {
-		try {
-			List<TrainerAssignedDto> updatedData = traineeService.updateTrainerList(newData);
-			return ResponseEntity.status(HttpStatus.OK).body(updatedData);
-		} catch (NotFoundException exception) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
-		} catch (Exception exception) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exception.getMessage());
-		}
+	public ResponseEntity<Object> updateTraineeTrainerList(@RequestBody @Valid UpdateTrainerList newData) {
+		List<TrainerAssignedDto> updatedData = traineeService.updateTrainerList(newData);
+		return ResponseEntity.status(HttpStatus.OK).body(updatedData);
     }
 	
 	@DeleteMapping("/{username}")
@@ -147,14 +114,8 @@ public class TraineeController {
             @ApiResponse(code = 404, message = "No trainee can be found.")
     })
 	public ResponseEntity<Object> deleteTraineeByUsername(@PathVariable String username) {
-		try {
-			traineeService.deleteTrainee(username);
-			return ResponseEntity.status(HttpStatus.OK).build();
-		} catch (NotFoundException exception) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
-		} catch (Exception exception) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exception.getMessage());
-		}
+		traineeService.deleteTrainee(username);
+		return ResponseEntity.status(HttpStatus.OK).build();
     }
 	
 }
