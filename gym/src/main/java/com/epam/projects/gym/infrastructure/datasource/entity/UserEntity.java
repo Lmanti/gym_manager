@@ -1,16 +1,17 @@
 package com.epam.projects.gym.infrastructure.datasource.entity;
 
 import java.io.Serializable;
-import java.util.UUID;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
+import javax.persistence.Table;
 
 import org.hibernate.annotations.GenericGenerator;
 
+import com.epam.projects.gym.domain.entity.User;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Getter;
@@ -19,6 +20,7 @@ import lombok.NonNull;
 import lombok.Setter;
 
 @Entity
+@Table
 @NoArgsConstructor
 @Getter
 @Setter
@@ -29,8 +31,8 @@ public class UserEntity implements Serializable {
 	@Id
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid2")
-	@JsonProperty("id")
-	private UUID userId;
+	@JsonProperty("userid")
+	private String userId;
 	
 	@Column
 	@JsonProperty("firstName")
@@ -72,6 +74,14 @@ public class UserEntity implements Serializable {
 		this.username = username;
 		this.password = password;
 		this.isActive = isActive;
+	}
+
+	public User toDomain() {
+		User user = new User(firstName, lastName, username, password, isActive);
+		user.setUserId(userId);
+		user.setTraineeId(traineeId != null ? traineeId.toDomain() : null);
+		user.setTrainerId(trainerId != null ? trainerId.toDomain() : null);		
+		return user;
 	}
 
 }

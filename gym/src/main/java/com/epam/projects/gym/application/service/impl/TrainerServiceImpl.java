@@ -6,6 +6,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.epam.projects.gym.application.dto.TrainerAssignedDto;
+import com.epam.projects.gym.application.dto.request.ChangeUserStatus;
 import com.epam.projects.gym.application.dto.request.TrainerRegister;
 import com.epam.projects.gym.application.dto.request.TrainerUpdate;
 import com.epam.projects.gym.application.dto.response.TrainerProfile;
@@ -15,11 +17,13 @@ import com.epam.projects.gym.application.mapper.TrainerMapper;
 import com.epam.projects.gym.application.service.TrainerService;
 import com.epam.projects.gym.domain.entity.Trainer;
 import com.epam.projects.gym.domain.entity.TrainingType;
+import com.epam.projects.gym.domain.exception.CreationException;
+import com.epam.projects.gym.domain.exception.NotFoundException;
+import com.epam.projects.gym.domain.exception.NotMatchException;
+import com.epam.projects.gym.domain.exception.UpdateException;
 import com.epam.projects.gym.domain.repository.TrainerRepository;
 import com.epam.projects.gym.domain.repository.TrainingTypeRepository;
 import com.epam.projects.gym.domain.utils.Randomizer;
-import com.epam.projects.gym.infrastructure.exception.NotFoundException;
-import com.epam.projects.gym.infrastructure.exception.NotMatchException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,134 +44,148 @@ public class TrainerServiceImpl implements TrainerService {
 
 	@Override
 	public List<TrainerProfile> getAllTrainers() {
+		log.info("Fetching all trainers data.");
 		List<Trainer> trainers = trainerRepository.getAllTrainers();
+		log.info("Trainers data fetched successfully.");
 		return trainers.stream().map(TrainerMapper::toProfile).collect(Collectors.toList());
 	}
 
 	@Override
 	public Optional<UserCreated> createTrainer(TrainerRegister trainer) {
-		try {
-			String randomUsername = null;
-			boolean exist = true;
+		log.info("Attempting to create a new trainer.");
+		String randomUsername = null;
+		boolean exist = true;
+		
+		if (trainer instanceof TrainerUpdate) {
+			randomUsername = ((TrainerUpdate) trainer).getUsername();
+		} else {
+			randomUsername = 
+					Randomizer.createUsername(trainer.getFirstName(), trainer.getLastName());				
+		}
+		
+		exist = trainerRepository.existByUsername(randomUsername);
+		
+		if (exist) {
+			log.info("Trainer with username {} alredy exist, giving a new username and trying again.", randomUsername);
+			return createTrainer(
+					trainer.getSettingUsername(
+						Randomizer.createUsername(trainer.getFirstName(), trainer.getLastName())
+						+ Randomizer.getSerialNumber()));
+		} else {
+			log.info("Verifing if specialization with name {} exist.", trainer.getSpecialization().getLabel());
+			Optional<TrainingType> specialization = trainingTypeRepository
+					.findByName(trainer.getSpecialization().getLabel());
 			
-			if (trainer instanceof TrainerUpdate) {
-				randomUsername = ((TrainerUpdate) trainer).getUsername();
-			} else {
-				randomUsername = 
-						Randomizer.createUsername(trainer.getFirstName(), trainer.getLastName());				
-			}
-			
-			exist = trainerRepository.findByUsername(randomUsername).isPresent();
-			
-			if (exist) {
-				return createTrainer(
-						trainer.getSettingUsername(
-							Randomizer.createUsername(trainer.getFirstName(), trainer.getLastName())
-							+ Randomizer.getSerialNumber()));
-			} else {
-				Optional<TrainingType> specialization = trainingTypeRepository
-						.findByName(trainer.getSpecialization().getLabel());
+			if (specialization.isPresent()) {
+				log.info("Creating new trainer: {}.", trainer);
+				String newPassword = Randomizer.createPasword(trainer.getFirstName(), trainer.getLastName());
+				Trainer newTrainer = new Trainer(
+						trainer.getFirstName(),
+						trainer.getLastName(),
+						randomUsername,
+						newPassword,
+						true,
+						specialization.get());
 				
-				if (specialization.isPresent()) {
-					Trainer newTrainer = new Trainer(
-							trainer.getFirstName(),
-							trainer.getLastName(),
-							randomUsername,
-							Randomizer.createPasword(trainer.getFirstName(), trainer.getLastName()),
-							true,
-							specialization.get());
+				Optional<Trainer> createdTrainer = trainerRepository.createTrainer(newTrainer);
+				
+				if (createdTrainer.isPresent()) {
+					log.info("Trainer created successfuly with ID: {}.", createdTrainer.get().getId());
 					
-					Trainer createdTrainer = trainerRepository.createTrainer(newTrainer);
-			
 					UserCreated response = new UserCreated();
-					response.setUsername(createdTrainer.getUsername());
-					response.setPassword(createdTrainer.getPassword());
+					response.setUsername(createdTrainer.get().getUsername());
+					response.setPassword(newPassword);
 					
 					return Optional.of(response);
 				} else {
-					throw new NotFoundException("Couldn't find a training type with name: " + trainer.getSpecialization().getLabel());
-				}	
-			}
-		} catch (Exception e) {
-			log.error(e.getMessage());
-			return Optional.empty();
+					log.error("Error while trying to create a new Trainer.");
+					throw new CreationException("Error while trying to create a new Trainer.");
+				}
+			} else {
+				log.error("Couldn't find a training type with name: {}", trainer.getSpecialization().getLabel());
+				throw new NotFoundException("Couldn't find a training type with name: " + trainer.getSpecialization().getLabel());
+			}	
 		}
 	}
 
 	@Override
 	public Optional<TrainerUpdated> updateTrainer(TrainerUpdate update) {
-		try {
-			Optional<Trainer> foundTrainer = trainerRepository.findByUsername(update.getUsername());
-			if (foundTrainer.isPresent()) {
-				Trainer trainer = foundTrainer.get();
-				
-				trainer.setFirstName(update.getFirstName());
-				trainer.setLastName(update.getLastName());
-				trainer.setIsActive(update.isActive());
-				
-				Trainer updatedTrainer = trainerRepository.updateTrainer(trainer);
-				
-				return Optional.of(TrainerMapper.toUpdated(updatedTrainer));
+		log.info("Attempting to update a trainer with username: {}.", update.getUsername());
+		Optional<Trainer> foundTrainer = trainerRepository.findByUsername(update.getUsername());
+		if (foundTrainer.isPresent()) {
+			log.info("Updating trainer data, merging: {}.", foundTrainer.get());
+			log.info("with: {}.", update);
+			Trainer trainer = foundTrainer.get();
+			
+			trainer.setFirstName(update.getFirstName());
+			trainer.setLastName(update.getLastName());
+			trainer.setIsActive(update.isActive());
+			
+			Optional<Trainer> updatedTrainer = trainerRepository.updateTrainer(trainer);
+			
+			if (updatedTrainer.isPresent()) {
+				log.info("Trainer updated successfully: {}.", updatedTrainer.get());
+				return Optional.of(TrainerMapper.toUpdated(updatedTrainer.get()));					
 			} else {
-				throw new NotFoundException("Couldn't find a trainee with username: " + update.getUsername());
+				log.error("Error while trying tu update trainer with username: {}", update.getUsername());
+				throw new UpdateException("Error while trying tu update trainer with username: " + update.getUsername());					
 			}
-		} catch (Exception e) {
-			log.error(e.getMessage());
-			return Optional.empty();
+		} else {
+			throw new NotFoundException("Couldn't find a trainer with username: " + update.getUsername());
 		}
 	}
 
 	@Override
 	public Optional<TrainerProfile> getTrainerByUsername(String username) {
-		try {
-			Optional<Trainer> foundTrainer = trainerRepository.findByUsername(username);
-			if (foundTrainer.isPresent()) {
-				return Optional.of(TrainerMapper.toProfile(foundTrainer.get()));			
-			} else {
-				throw new NotFoundException("Couldn't find a trainee with username: " + username);
-			}
-		} catch (Exception e) {
-			log.error(e.getMessage());
-			return Optional.empty();
-		}
-	}
-	
-	@Override
-	public boolean loginTrainer(String username, String password) {
-		try {
-			Optional<Trainer> foundTrainer = trainerRepository.findByUsername(username);
-			if (foundTrainer.isPresent()) {
-				boolean validation = foundTrainer.get().getPassword().equals(password);
-				return validation;
-			} else {
-				throw new NotFoundException("Couldn't find a trainer with username: " + username);
-			}
-		} catch (Exception e) {
-			log.error(e.getMessage());
-			return false;
+		log.info("Looking for trainer with username: {}.", username);
+		Optional<Trainer> foundTrainer = trainerRepository.findByUsername(username);
+		if (foundTrainer.isPresent()) {
+			log.info("Trainer with username {} found successfully.", username);
+			return Optional.of(TrainerMapper.toProfile(foundTrainer.get()));			
+		} else {
+			log.error("Couldn't find a trainer with username: " + username);
+			throw new NotFoundException("Couldn't find a trainer with username: " + username);
 		}
 	}
 
 	@Override
 	public boolean changeTrainerPassword(String username, String oldPassword, String newPassword) {
-		try {
-			Optional<Trainer> foundTrainer = trainerRepository.findByUsername(username);
-			if (foundTrainer.isPresent()) {
-				Trainer trainer = foundTrainer.get();
-				
-				if (trainer.getPassword().equals(oldPassword)) {
-					trainer.setPassword(newPassword);
-					trainerRepository.updateTrainer(trainer);
-					return true;					
-				} else {
-					throw new NotMatchException("Invalid Password.");
-				}				
-			} else {
-				throw new NotFoundException("Couldn't find a trainer with username: " + username);
-			}
-		} catch (Exception e) {
-			log.error(e.getMessage());
-			return false;
+		log.info("Trying to update password for trainer with username: {}", username);
+		Optional<Trainer> foundTrainer = trainerRepository.findByUsernameAndPassword(username, oldPassword);
+		if (foundTrainer.isPresent()) {
+			log.info("Matched. Updating password for trainer with username: {}", username);
+			Trainer trainer = foundTrainer.get();
+			trainer.setPassword(newPassword);
+			trainerRepository.updateTrainer(trainer);
+			log.info("Password updated succesfully.");
+			return true;				
+		} else {
+			log.error("Invalid credentials, incorrect username or password.");
+			throw new NotMatchException("Invalid credentials, incorrect username or password.");
+		}
+	}
+
+	@Override
+	public List<TrainerAssignedDto> getAllNonAssociatedTrainers(String username) {
+		log.info("Fetching all non-associated trainers data.");
+		List<Trainer> trainers = trainerRepository.getAllNonAssociatedTrainers(username);
+		log.info("Non-Associated trainers data fetched successfully.");
+		return trainers.stream().map(TrainerMapper::toAssignedDto).collect(Collectors.toList());
+	}
+
+	@Override
+	public boolean changeTrainerStatus(ChangeUserStatus request) {
+		log.info("Changing status of trainer with username: {}", request.getUsername());
+		Optional<Trainer> foundTrainer = trainerRepository.findByUsername(request.getUsername());
+		if (foundTrainer.isPresent()) {
+			Trainer trainer = foundTrainer.get();
+			trainer.setIsActive(request.isActive());
+			trainerRepository.updateTrainer(trainer);
+			log.info("Status changed successfully.");
+			return true;
+		} else {
+			log.error("Couldn't find a trainer with username: {}", request.getUsername());
+			throw new NotFoundException("Couldn't find a trainer with username: " + request.getUsername());
 		}
 	}
 

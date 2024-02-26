@@ -2,6 +2,8 @@ package com.epam.projects.gym.application.dto.request;
 
 import java.time.LocalDate;
 
+import javax.validation.constraints.NotBlank;
+
 import org.springframework.format.annotation.DateTimeFormat;
 
 import io.swagger.annotations.ApiModelProperty;
@@ -12,6 +14,7 @@ import lombok.Setter;
 @Setter
 public class TraineeTraining {
 
+	@NotBlank
 	private String username;
 
 	@ApiModelProperty(example = "2011-11-11")

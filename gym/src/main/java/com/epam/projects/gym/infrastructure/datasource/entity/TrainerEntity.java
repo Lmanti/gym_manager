@@ -3,7 +3,6 @@ package com.epam.projects.gym.infrastructure.datasource.entity;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
@@ -16,6 +15,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.Table;
 
 import org.hibernate.annotations.GenericGenerator;
 
@@ -28,6 +28,7 @@ import lombok.NonNull;
 import lombok.Setter;
 
 @Entity
+@Table
 @NoArgsConstructor
 @Getter
 @Setter
@@ -39,7 +40,7 @@ public class TrainerEntity implements Serializable {
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid2")
 	@JsonProperty("trainerId")
-	private UUID trainerId;
+	private String trainerId;
 	
 	@ManyToOne
 	@JoinColumn(name = "trainingTypeId")

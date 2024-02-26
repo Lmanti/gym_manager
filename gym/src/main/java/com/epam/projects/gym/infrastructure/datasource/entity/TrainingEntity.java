@@ -2,7 +2,6 @@ package com.epam.projects.gym.infrastructure.datasource.entity;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.util.UUID;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -10,6 +9,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
 import org.hibernate.annotations.GenericGenerator;
 
@@ -22,6 +22,7 @@ import lombok.NonNull;
 import lombok.Setter;
 
 @Entity
+@Table
 @NoArgsConstructor
 @Getter
 @Setter
@@ -33,7 +34,7 @@ public class TrainingEntity implements Serializable {
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid2")
 	@JsonProperty("trainingId")
-	private UUID trainingId;
+	private String trainingId;
 
 	@ManyToOne
     @JoinColumn(name = "traineeId")
@@ -86,6 +87,7 @@ public class TrainingEntity implements Serializable {
 				trainingTypeId.toDomain(),
 				trainingDate,
 				duration);
+		training.setId(trainingId);
 		return training;
 	}
 

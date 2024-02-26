@@ -1,7 +1,5 @@
 package com.epam.projects.gym.domain.entity;
 
-import java.util.UUID;
-
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -12,7 +10,7 @@ import lombok.ToString;
 @ToString
 public class User {
 
-	private UUID userId;
+	private String userId;
 
 	private String firstName;
 

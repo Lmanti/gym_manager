@@ -1,7 +1,6 @@
 package com.epam.projects.gym.domain.entity;
 
 import java.time.LocalDate;
-import java.util.UUID;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -13,7 +12,7 @@ import lombok.ToString;
 @ToString
 public class Training {
 
-	private UUID id;
+	private String id;
 
 	private Trainee traineeId;
 

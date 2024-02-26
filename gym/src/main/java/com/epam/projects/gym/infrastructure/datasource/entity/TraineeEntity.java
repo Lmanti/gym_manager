@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
@@ -17,6 +16,7 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.Table;
 
 import org.hibernate.annotations.GenericGenerator;
 
@@ -29,6 +29,7 @@ import lombok.NonNull;
 import lombok.Setter;
 
 @Entity
+@Table
 @NoArgsConstructor
 @Getter
 @Setter
@@ -40,7 +41,7 @@ public class TraineeEntity implements Serializable {
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid2")
 	@JsonProperty("traineeId")
-	private UUID traineeId;
+	private String traineeId;
 	
 	@Column(nullable = true)
 	@JsonProperty("dateOfBirth")

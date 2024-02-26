@@ -2,7 +2,6 @@ package com.epam.projects.gym.domain.entity;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.UUID;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -14,7 +13,7 @@ import lombok.ToString;
 @ToString(callSuper = true)
 public class Trainee extends User {
 
-	private UUID id;
+	private String id;
 	
 	private LocalDate dateOfBirth;
 	

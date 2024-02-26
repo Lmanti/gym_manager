@@ -1,4 +1,4 @@
-package com.epam.projects.gym.application.enums;
+package com.epam.projects.gym.domain.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -3,6 +3,8 @@ package com.epam.projects.gym.application.service;
 import java.util.List;
 import java.util.Optional;
 
+import com.epam.projects.gym.application.dto.TrainerAssignedDto;
+import com.epam.projects.gym.application.dto.request.ChangeUserStatus;
 import com.epam.projects.gym.application.dto.request.TrainerRegister;
 import com.epam.projects.gym.application.dto.request.TrainerUpdate;
 import com.epam.projects.gym.application.dto.response.TrainerProfile;
@@ -21,6 +23,8 @@ public interface TrainerService {
 	
 	public boolean changeTrainerPassword(String username, String oldPassword, String newPassword);
 
-	public boolean loginTrainer(String username, String password);
+	public List<TrainerAssignedDto> getAllNonAssociatedTrainers(String username);
+
+	public boolean changeTrainerStatus(ChangeUserStatus request);
 
 }

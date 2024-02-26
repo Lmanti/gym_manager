@@ -18,11 +18,12 @@ import com.epam.projects.gym.domain.entity.Trainee;
 import com.epam.projects.gym.domain.entity.Trainer;
 import com.epam.projects.gym.domain.entity.Training;
 import com.epam.projects.gym.domain.entity.TrainingType;
+import com.epam.projects.gym.domain.exception.CreationException;
+import com.epam.projects.gym.domain.exception.NotFoundException;
 import com.epam.projects.gym.domain.repository.TraineeRepository;
 import com.epam.projects.gym.domain.repository.TrainerRepository;
 import com.epam.projects.gym.domain.repository.TrainingRepository;
 import com.epam.projects.gym.domain.repository.TrainingTypeRepository;
-import com.epam.projects.gym.infrastructure.exception.NotFoundException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -52,30 +53,36 @@ public class TrainingServiceImpl implements TrainingService {
 
 	@Override
 	public boolean createTraining(TrainingCreate training) {
-		try {
-			Optional<Trainee> trainee = traineeRepository.findByUsername(training.getTraineeUsername());
-			Optional<Trainer> trainer = trainerRepository.findByUsername(training.getTrainerUsername());
-			Optional<TrainingType> trainingType = trainingTypeRepository.findByName(training.getTrainingTypeName().getLabel());
-			if (!trainee.isPresent()) {
-				throw new NotFoundException("Couldn't find a trainee with username: " + training.getTraineeUsername());
-			} else if (!trainer.isPresent()) {
-				throw new NotFoundException("Couldn't find a trainer with username: " + training.getTrainerUsername());
-			} else if (!trainingType.isPresent()) {
-				throw new NotFoundException("Couldn't find a training type with name: " + training.getTrainingTypeName().getLabel());
+		log.info("Attempting to create a new Training.");
+		log.info("Looking for trainee with username: {}", training.getTraineeUsername());
+		Optional<Trainee> trainee = traineeRepository.findByUsername(training.getTraineeUsername());
+		log.info("Looking for trainer with username: {}", training.getTrainerUsername());
+		Optional<Trainer> trainer = trainerRepository.findByUsername(training.getTrainerUsername());
+		log.info("Looking for training type with name: {}", training.getTrainingTypeName().getLabel());
+		Optional<TrainingType> trainingType = trainingTypeRepository.findByName(training.getTrainingTypeName().getLabel());
+		if (!trainee.isPresent()) {
+			throw new NotFoundException("Couldn't find a trainee with username: " + training.getTraineeUsername());
+		} else if (!trainer.isPresent()) {
+			throw new NotFoundException("Couldn't find a trainer with username: " + training.getTrainerUsername());
+		} else if (!trainingType.isPresent()) {
+			throw new NotFoundException("Couldn't find a training type with name: " + training.getTrainingTypeName().getLabel());
+		} else {
+			log.info("Creating a new Training: {}", training);
+			Training newTraining = new Training(
+					trainee.get(),
+					trainer.get(),
+					training.getTrainingName(),
+					trainingType.get(),
+					training.getTrainingDate(),
+					training.getDuration());
+			Optional<Training> createdTraining = trainingRepository.createTraining(newTraining);
+			if (createdTraining.isPresent()) {
+				log.info("Training created successfully with ID: {}", createdTraining.get().getId());
+				return true;
 			} else {
-				Training newTraining = new Training(
-						trainee.get(),
-						trainer.get(),
-						training.getTrainingName(),
-						trainingType.get(),
-						training.getTrainingDate(),
-						training.getDuration());
-				Training createdTraining = trainingRepository.createTraining(newTraining);
-				return createdTraining != null;
+				log.error("Error while trying to create a new Training.");
+				throw new CreationException("Error while trying to create a new Training.");
 			}
-		} catch (Exception e) {
-			log.error(e.getMessage());
-			return false;
 		}
 	}
 

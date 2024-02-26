@@ -3,15 +3,22 @@ package com.epam.projects.gym.infrastructure.controller;
 import java.util.List;
 import java.util.Optional;
 
+import javax.validation.Valid;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.epam.projects.gym.application.dto.TrainerAssignedDto;
+import com.epam.projects.gym.application.dto.request.ChangeUserStatus;
 import com.epam.projects.gym.application.dto.request.TrainerRegister;
 import com.epam.projects.gym.application.dto.request.TrainerUpdate;
 import com.epam.projects.gym.application.dto.response.TrainerProfile;
@@ -51,13 +58,9 @@ public class TrainerController {
             @ApiResponse(code = 201, message = "Trainer registered successfully."),
             @ApiResponse(code = 400, message = "Register failed, please check the info.")
     })
-	public ResponseEntity<UserCreated> createTrainer(@RequestBody TrainerRegister trainer) {
+	public ResponseEntity<Object> createTrainer(@RequestBody @Valid TrainerRegister trainer) {
 		Optional<UserCreated> newTrainer = trainerService.createTrainer(trainer);
-		if (newTrainer.isPresent()) {
-			return ResponseEntity.status(201).body(newTrainer.get());			
-		} else {
-			return ResponseEntity.status(400).build();
-		}
+		return ResponseEntity.status(HttpStatus.CREATED).body(newTrainer.get());
     }
 	
 	@GetMapping("/{username}")
@@ -66,28 +69,41 @@ public class TrainerController {
             @ApiResponse(code = 200, message = "Trainer found successfully."),
             @ApiResponse(code = 404, message = "No trainer can be found.")
     })
-	public ResponseEntity<TrainerProfile> getTrainerByUsername(@RequestParam String username) {
-		Optional<TrainerProfile> trainer = trainerService.getTrainerByUsername(username);
-		if (trainer.isPresent()) {
-			return ResponseEntity.status(200).body(trainer.get());			
-		} else {
-			return ResponseEntity.status(404).build();
-		}
+	public ResponseEntity<Object> getTrainerByUsername(@PathVariable String username) {
+		Optional<TrainerProfile> trainee = trainerService.getTrainerByUsername(username);
+		return ResponseEntity.status(HttpStatus.OK).body(trainee.get());
+    }
+	
+	@PutMapping
+	@ApiOperation(value = "Updates a trainer.")
+	@ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Trainer updated successfully."),
+            @ApiResponse(code = 400, message = "Update failed, please check the info.")
+    })
+	public ResponseEntity<Object> updateTrainee(@RequestBody @Valid TrainerUpdate trainer) {
+		Optional<TrainerUpdated> updated = trainerService.updateTrainer(trainer);
+		return ResponseEntity.status(HttpStatus.OK).body(updated.get());
     }
 	
 	@PatchMapping
-	@ApiOperation(value = "Updates a trainer.")
+	@ApiOperation(value = "Activate/De-Activate a trainer")
 	@ApiResponses(value = {
             @ApiResponse(code = 201, message = "Trainer updated successfully."),
-            @ApiResponse(code = 400, message = "Update failed, please check the info.")
+            @ApiResponse(code = 404, message = "Update failed, please check the info.")
     })
-	public ResponseEntity<TrainerUpdated> updateTrainee(@RequestBody TrainerUpdate trainee) {
-		Optional<TrainerUpdated> updated = trainerService.updateTrainer(trainee);
-		if (updated.isPresent()) {
-			return ResponseEntity.status(201).body(updated.get());	
-		} else {
-			return ResponseEntity.status(400).build();
-		}
+	public ResponseEntity<Object> activateDeactivateTrainer(@RequestBody @Valid ChangeUserStatus request) {
+		trainerService.changeTrainerStatus(request);
+		return ResponseEntity.status(HttpStatus.OK).build();
+    }
+	
+	@GetMapping("/notAssociated")
+	@ApiOperation(value = "Gets not assigned on trainee active trainers.")
+	@ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Trainers found successfully.")
+    })
+	public ResponseEntity<List<TrainerAssignedDto>> getAllNonAssociatedTrainers(@RequestParam String username) {
+		List<TrainerAssignedDto> trainers = trainerService.getAllNonAssociatedTrainers(username);
+		return ResponseEntity.status(HttpStatus.OK).body(trainers);
     }
 	
 }
