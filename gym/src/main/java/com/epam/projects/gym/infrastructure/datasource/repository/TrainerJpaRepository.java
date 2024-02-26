@@ -1,4 +1,4 @@
-package com.epam.projects.gym.infrastructure.datasource.postgresql.repository;
+package com.epam.projects.gym.infrastructure.datasource.repository;
 
 import java.util.List;
 import java.util.Optional;

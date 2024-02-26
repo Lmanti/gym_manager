@@ -14,8 +14,8 @@ import com.epam.projects.gym.domain.repository.TrainerRepository;
 import com.epam.projects.gym.infrastructure.datasource.entity.TrainerEntity;
 import com.epam.projects.gym.infrastructure.datasource.entity.TrainingTypeEntity;
 import com.epam.projects.gym.infrastructure.datasource.entity.UserEntity;
-import com.epam.projects.gym.infrastructure.datasource.postgresql.repository.TrainerJpaRepository;
-import com.epam.projects.gym.infrastructure.datasource.postgresql.repository.TrainingTypeJpaRepository;
+import com.epam.projects.gym.infrastructure.datasource.repository.TrainerJpaRepository;
+import com.epam.projects.gym.infrastructure.datasource.repository.TrainingTypeJpaRepository;
 import com.epam.projects.gym.infrastructure.exception.DatabaseException;
 
 import lombok.extern.slf4j.Slf4j;

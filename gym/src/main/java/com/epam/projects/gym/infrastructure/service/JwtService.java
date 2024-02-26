@@ -2,6 +2,7 @@ package com.epam.projects.gym.infrastructure.service;
 
 import java.io.Serializable;
 import java.security.Key;
+import java.time.LocalDate;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
@@ -12,12 +13,21 @@ import javax.crypto.spec.SecretKeySpec;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import com.epam.projects.gym.infrastructure.datasource.entity.RevokedToken;
+import com.epam.projects.gym.infrastructure.datasource.repository.RevokedTokenRepository;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 
 @Service
 public class JwtService implements Serializable {
+	
+	private RevokedTokenRepository revokedTokenRepository;
+	
+	public JwtService(RevokedTokenRepository revokedTokenRepository) {
+		this.revokedTokenRepository = revokedTokenRepository;
+	}
 
 	private static final long serialVersionUID = 1L;
 	
@@ -50,8 +60,17 @@ public class JwtService implements Serializable {
         		.build()
         		.parseClaimsJws(token)
         		.getBody();
-        Boolean isTokenExpired = claims.getExpiration().before(new Date()); 
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired); 
-    } 
+        Boolean isTokenExpired = claims.getExpiration().before(new Date());
+        Boolean isTokenRevoked = revokedTokenRepository.existsById(token);
+        return (username.equals(userDetails.getUsername()) && !isTokenExpired && !isTokenRevoked); 
+    }
+    
+    public void revokeToken(String token) {
+		final LocalDate expiration = LocalDate.now();
+		boolean isRevoked = revokedTokenRepository.existsById(token);
+		if (token != null && !token.trim().isEmpty() && !isRevoked) {
+			revokedTokenRepository.save(new RevokedToken(token, expiration));
+		}
+	}
 	
 }

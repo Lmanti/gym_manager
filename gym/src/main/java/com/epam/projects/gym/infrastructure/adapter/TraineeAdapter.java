@@ -20,9 +20,9 @@ import com.epam.projects.gym.infrastructure.datasource.entity.TraineeEntity;
 import com.epam.projects.gym.infrastructure.datasource.entity.TrainerEntity;
 import com.epam.projects.gym.infrastructure.datasource.entity.TrainingEntity;
 import com.epam.projects.gym.infrastructure.datasource.entity.UserEntity;
-import com.epam.projects.gym.infrastructure.datasource.postgresql.repository.TraineeJpaRepository;
-import com.epam.projects.gym.infrastructure.datasource.postgresql.repository.TrainerJpaRepository;
-import com.epam.projects.gym.infrastructure.datasource.postgresql.repository.TrainingJpaRepository;
+import com.epam.projects.gym.infrastructure.datasource.repository.TraineeJpaRepository;
+import com.epam.projects.gym.infrastructure.datasource.repository.TrainerJpaRepository;
+import com.epam.projects.gym.infrastructure.datasource.repository.TrainingJpaRepository;
 import com.epam.projects.gym.infrastructure.exception.DatabaseException;
 import com.epam.projects.gym.infrastructure.specification.TrainingEntitySpecification;
 

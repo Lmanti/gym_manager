@@ -12,7 +12,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.epam.projects.gym.infrastructure.datasource.entity.UserEntity;
-import com.epam.projects.gym.infrastructure.datasource.postgresql.repository.UserJpaRepository;
+import com.epam.projects.gym.infrastructure.datasource.repository.UserJpaRepository;
 
 @Service
 public class AuthService implements UserDetailsService {

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.epam.projects.gym.application.dto.request.ChangeLogin;
@@ -73,7 +74,18 @@ public class AuthController {
 		
 		final UserDetails userDetails = authService.loadUserByUsername(user.getUsername());
 		final String jwtToken = tokenManager.generateJwtToken(userDetails);
-		return ResponseEntity.status(HttpStatus.OK).header("Authorization", "Bearer " + jwtToken).body("Logged sucessfully.");
+		return ResponseEntity.status(HttpStatus.OK).header("Authorization", "Bearer " + jwtToken).body("Logged in sucessfully.");
+    }
+	
+	@GetMapping("/logout")
+	@ApiOperation(value = "Logs in to an user.")
+	@ApiResponses(value = {
+            @ApiResponse(code = 200, message = "User Logged successfully."),
+            @ApiResponse(code = 401, message = "Login failed, invalid credentials.")
+    })
+	public ResponseEntity<Object> logout(@RequestParam String token) {
+		tokenManager.revokeToken(token);
+		return ResponseEntity.status(HttpStatus.OK).body("Logged out sucessfully.");
     }
 	
 	@PutMapping("/trainee")

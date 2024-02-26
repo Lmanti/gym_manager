@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.epam.projects.gym.domain.entity.TrainingType;
 import com.epam.projects.gym.domain.repository.TrainingTypeRepository;
 import com.epam.projects.gym.infrastructure.datasource.entity.TrainingTypeEntity;
-import com.epam.projects.gym.infrastructure.datasource.postgresql.repository.TrainingTypeJpaRepository;
+import com.epam.projects.gym.infrastructure.datasource.repository.TrainingTypeJpaRepository;
 import com.epam.projects.gym.infrastructure.exception.DatabaseException;
 
 import lombok.extern.slf4j.Slf4j;

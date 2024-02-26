@@ -1,6 +1,8 @@
 package com.epam.projects.gym.infrastructure.config;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -31,6 +33,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	
 	private JwtService tokenManager;
 	
+	private final Map<String, Integer> loginAttemptsCache = new HashMap<>();
+	
 	public JwtAuthenticationFilter(AuthService userDetailsService, JwtService tokenManager) {
 		this.userDetailsService = userDetailsService;
 		this.tokenManager = tokenManager;
@@ -42,7 +46,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		
 		String header = request.getHeader("Authorization");
 		if (header == null || !header.startsWith("Bearer ")) {
-			log.warn("Bearer String not found in token");
+			String username = request.getParameter("username");
+			
+			if (username != null && !username.isEmpty()) {
+				int attempts = loginAttemptsCache.getOrDefault(username, 0);
+		        attempts++;
+		        log.info("User with username {} has attempted to log in {} times.", username, attempts);
+		        loginAttemptsCache.put(username, attempts);
+		        
+		        if (attempts >= 3) {
+		        	log.info("User with username {} has attempted to log in {} times. Account blocked for 5 minutes.", username, attempts);
+		            try {
+						Thread.sleep(((60 * 5) * 1000));
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+		            loginAttemptsCache.remove(username);
+		        }
+			}
+
             filterChain.doFilter(request, response);
             return;
         }
