@@ -6,7 +6,7 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>2.7.18</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath/>
 	</parent>
 	<groupId>com.epam.projects</groupId>
 	<artifactId>gym</artifactId>
@@ -125,16 +125,6 @@
 	</dependencies>
 
 	<build>
-<!--		<resources>-->
-<!--	        <resource>-->
-<!--	            <directory>src/main/resources</directory>-->
-<!--	            <excludes>-->
-<!--	                <exclude>**/application-local.yml</exclude>-->
-<!--	                <exclude>**/application-test.yml</exclude>-->
-<!--	                <exclude>**/data.sql</exclude>-->
-<!--	            </excludes>-->
-<!--	        </resource>-->
-<!--	    </resources>-->
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>

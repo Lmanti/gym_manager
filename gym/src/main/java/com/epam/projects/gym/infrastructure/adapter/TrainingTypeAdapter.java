@@ -1,6 +1,9 @@
 package com.epam.projects.gym.infrastructure.adapter;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +40,23 @@ public class TrainingTypeAdapter implements TrainingTypeRepository{
 		} catch (Exception e) {
 			log.error("Error while trying to find a training type by name.", e);
 			throw new DatabaseException("Error while trying to find a training type by name.", e);
+		}
+	}
+	
+	@Transactional(readOnly = true)
+	@Override
+	public List<TrainingType> getAllTrainingTypes() {
+		try {
+			log.debug("Trying to fetch all Training types.");
+			List<TrainingTypeEntity> foundTrainingTypes = trainingTypeJpaRepository.findAll();
+			if (!foundTrainingTypes.isEmpty()) {
+				return foundTrainingTypes.stream().map(TrainingTypeEntity::toDomain).collect(Collectors.toList());			
+			} else {
+				return Collections.emptyList();
+			}			
+		} catch (Exception e) {
+			log.error("Error while trying to fetch all Training types from the database.", e);
+			throw new DatabaseException("Error while trying to fetch all Training types from the database.", e);
 		}
 	}
 	
